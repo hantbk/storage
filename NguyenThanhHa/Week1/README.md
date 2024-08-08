@@ -9,13 +9,22 @@ Phương pháp sao lưu đầy đủ sẽ tạo ra một bản sao lưu đầy �
 Phương pháp sao lưu gia tăng sao chép mọi dữ liệu đã được thay đổi kể từ lần sao lưu gần nhất, bất kể phương pháp sao lưu gần nhất là gì. Phương pháp sao lưu gia tăng đảo ngược sẽ bổ sung mọi dữ liệu đã được thay đổi vào bản sao lưu đầy đủ gần nhất. Các bản sao lưu như vậy có xu hướng chiếm ít dung lượng lưu trữ hơn so với các bản sao lưu khác biệt, vốn tăng dần theo thời gian và chúng cũng mất ít thời gian hơn để hoàn thành. Tuy nhiên, việc khôi phục dữ liệu sẽ mất nhiều thời gian hơn vì nó yêu cầu bản sao lưu toàn bộ ban đầu cộng với mỗi bản sao lưu gia tăng.
 - ## 3. Sao lưu khác biệt (Differential Backup)
 Phương pháp sao lưu khác biệt sẽ sao chép mọi dữ liệu kể từ lần sao lưu đầy đủ gần nhất, bất kể có bản sao lưu nào khác được tạo ra bằng bất kỳ phương pháp nào khác trong thời gian đó hay không. Thời gian sao lưu nhanh hơn so với sao lưu toàn bộ, nhưng việc khôi phục dữ liệu yêu cầu bản full backup ban đầu và bản sao lưu khác biệt mới nhất.
-- ## 4. Sao lưu nhân bản (Mirror backup)
-Phương pháp sao lưu nhân bản dược lưu trữ ở định dạng không nén, nhân bản mọi tập tin và cấu hình trong dữ liệu nguồn. Có thể truy cập vào dữ liệu này giống như dữ liệu gốc
 
 # Cơ chế hoạt động của Backup
 ## 1. Xác định dữ liệu cần backup:
-- `File-level backup`: Sao lưu từng tệp tin hoặc thư mục cụ thể
-- `Block-level backup`: Sao lưu các khối dữ liệu, thường dùng cho các hệ thống lưu trữ lớn như cơ sở dữ liệu 
+- `File-level backup`: Phương pháp sao lưu dữ liệu trong đó từng tệp được sao lưu riêng lẻ vào backup repo. Thay vì sao chép toàn bộ ổ đĩa hoặc hệ thống tệp, chỉ sao chép các tệp được chỉ định hoặc các tệp đã thay đổi kể từ lần sao lưu cuối cùng. Điều này lâu hơn block-level backup bởi vì phần mềm backup sẽ phải quét toàn bộ file để xem có sự thay đổi nào kể từ lần sao lưu đầy đủ cuối cùng và sau đó mới sao lưu lại toàn bộ tệp đã sửa đổi.
+![](image1.png)
+
+#### Đặc điểm của File-level backup:
+1. Lưu trữ tệp riêng lẻ: Từng tệp được sao lưu một cách riêng lẻ, thay vì sao lưu toàn bộ khối dữ liệu hoặc toàn bộ ổ đĩa 
+2. Dễ dàng phục hồi: Có thể dễ dàng phục hồi từng tệp hoặc thư mục mà không cần phục hồi toàn bộ hệ thống
+3. Chọn lọc tệp: Người dùng có thể chọn các tệp hoặc thư muc cụ thể để sao lưu giúp tiết kiệm dung lượng lưu trữ và thời gian sao lưu.
+4. Quản lý phiên bản: Cho phép lưu giữ nhiều phiên bản của cùng một tệp
+- `Block-level backup`: Không sao chép toàn bộ tệp nếu chỉ một phần của tệp đó đã thay đổi, chỉ phần đã thay đổi của tệp đã được gửi đến backup repo. Do đó, block-level backup nhanh hơn và yêu cầu ít không gian lưu trữ hơn 
+Block-level backups sẽ snapshot volume đang chạy và dữ liệu được đọc từ snapshot. Điều này cho phép sao chép các files ngay cả khi chúng đang được sử dụng trong chương trình khác đang chạy và cũng làm giảm tác động đến hiệu suất của máy trong quá trình sao lưu.
+![](image2.png)
+
+
 - `Image-level backup`: Sao lưu toàn bộ hình ảnh của hệ thống, bao gồm cả hệ điều hành và các ứng dụng.
 ## 2. Chọn phương pháp backup:
 - `Full Backup`: Tốn thời gian và dung lượng lưu trữ nhưng đảm bảo đầy đủ dữ liệu.
@@ -23,7 +32,7 @@ Phương pháp sao lưu nhân bản dược lưu trữ ở định dạng không
 - `Differential Backup`: Nhanh hơn full backup và đơn giản hơn incremental backup khi khôi phục dữ liệu.
 ## 3. Quá trình backup:
 - `Thu thập dữ liệu`: Cài đặt Backup agent hoặc phần mềm backup lên máy chủ, máy trạm, máy ảo... cần backup
-- `Cài đặt jobs backup`: tự động chạy các jobs theo 
+- `Cài đặt jobs backup`: tự động chạy các jobs theo các plan đã tạo sẵn
 - `Nén và mã hoá (nếu cần)`: Dữ liệu có thể được nén để tiết kiệm dung lượng lưu trữ và mã hoá để đảm bảo an toàn.
 - `Chuyển dữ liệu`: Dữ liệu được chuyển đến đích lưu trữ, có thể là một máy chủ khác, ổ đĩa ngoài, dịch vụ lưu trữ đám mây(S3, Google Drive, One Drive,...) hoặc băng từ.
 ## 4. Lưu trữ dữ liệu:
@@ -76,53 +85,83 @@ Non-image-based Backup hoạt động ở file level sử dụng hệ thống ag
 Agentless backup còn gọi là sao lưu dựa trên máy chủ, đề cập đến giải pháp không yêu cầu phải cài đặt agent trên mỗi máy ảo. Tuy nhiên điều quan trọng là phần mềm có thể đưa agent vào máy khách mà ta không hề biết.
 Giải pháp này tích hợp với VMware APIs for Data Protection (VADP) hoặc Microsoft VSS, tạo ra các bản snapshots nhanh, hiệu suất cao của các đĩa ảo gắn với các VMs. Phần mềm backup sẽ giao tiếp với VADP hoặc VSS và cho biết những gì nó muốn sao lưu. VADP và VSS thực hiện 1 số bước và lần lượt chuẩn bị dữ liệu để backup. Nhà cung cấp VSS/VADP sẽ snap ổ đĩa và cấp cho backup solution quyền truy cập vào snapshot bằng cách đưa tệp cho máy chủ backup. Sau đó backup solution sẽ sao lưu lại snapshot đó.
 
-
-
-
+<!--- Update: 8/8/2024 --->
 # Cloud Storage
 ### 1. Object storage
-Object storage là kiến trúc lưu trữ dữ liệu cho các kho lưu trữ lớn, lưu trữ một lượng lớn và ngày càng tăng của các dữ liệu phi cấu trúc: ảnh, video, học máy (machine learning), dữ liệu cảm biến, file âm thanh và các loại nội dung web khác. Việc tìm ra cách để có thể mở rộng hiệu quả, không tốn kém là một thách thức. Objects lưu trữ dữ liệu theo định dạng của dữ liệu ban đầu và cho phép có thể tuỳ chỉnh metadata theo cách giúp dữ liệu dễ truy cập và phân tích hơn. Thay vì được tổ chức theo cấu trúc phân cấp tệp hoặc thư mục, objects được lưu trong các secure buckets cung cấp khả năng mở rộng gần như không giới hạn.
+Object storage là một phương pháp lưu trữ dữ liệu trong đó dữ liệu được lưu trữ dưới dạng các đối tượng (objects). Mỗi đối tượng bao gồm dữ liệu thực tế, siêu dữ liệu (metadata) mô tả dữ liệu đó, và một định danh duy nhất (unique identifier) cho phép truy xuất đối tượng đó. Đây là một hình thức lưu trữ rất phổ biến trong môi trường Cloud, nhờ vào khả năng mở rộng và quản lý dễ dàng.
+#### Đặc điểm của Object Storage:
+##### 1. Cấu trúc đối tượng: 
+- Dữ liệu được lưu trữ dưới dạng các đối tượng. Mỗi đối tượng bao gồm:
+
+    - Data: Nội dung thực tế của tệp
+    - Metadata: Thông tin mô tả về dữ liệu: kích thước, loại tệp và các thông tin do người dùng định nghĩa
+    - Unique Id: Một ID duy nhất dùng để truy cập đối tượng
+##### 2. Khả năng mở rộng:
+- Object storage có khả năng mở rộng vô hạn, giúp dễ dàng lưu trữ một lượng lớn dữ liệu
+##### 3. Quản lý đơn giản:
+- Không yêu cầu cấu trúc thư mục phức tạp. Các đối tượng được lưu trữ trong một không gian phẳng không cần phải cấu trúc thư mục với các định danh duy nhất.
+##### 4. Tính bền vững:
+- Được thiết kế để đảm bảo tính toàn vẹn và bền vững của dữ liệu, thường được sử dụng các phương pháp như sao chép dữ liệu và mã hoá dữ liệu để bảo vệ thông tin. 
 
 ### 2. File Storage
-Lưu trữ dựa trên tệp được sử dụng rộng rãi trong các ứng dụng và lưu trữ dữ liệu phân cấp định dạng tệp và thư mục. Các loại lưu trữ này thường được gọi là máy chủ lưu trữ được kết nối mạng( network-attached storage - NAS) với các giao thức cấp file level của Server Message Block (SMB) được sử dụng trong các phiên bản Windows và Network File System(NFS) trong Linux. 
-
-#### Network-attached storage (NAS)
-NAS là một loại thiết bị lưu trữ cung cấp cho các nút mạng cục bộ (LAN) lưu trữ chia sẻ dựa trên tệp thông qua kết nối Ethernet. Máy chủ NAS thường chứa nhiều ổ cứng, cung cấp dung lượng lưu trữ tập trung lớn cho các máy tính được kết nối để lưu dữ liệu. Thay vì mỗi máy tính chia sẻ các tệp riêng của mình, dữ liệu được chia sẻ sẽ được lưu trữ trên một máy chủ NAS duy nhất. Cung cấp 1 cách dễ dàng để nhiều người dùng truy cập cùng một dữ liệu, điều này quan trọng trong các tình huống mà người dùng đang cộng tác trong các dự án hoặc sử dụng cùng một tiêu chuẩn. Do bản chất tập trung của mình nên máy chủ NAS thường được sử dụng cho:
-- Chia sẻ tệp
-- Sao lưu/ phục hồi dữ liệu
-- Network printing
-- Chia sẻ tệp đa phương tiện
-- Media server
-#### Advantage of NAS
-- `Convenient`: it provides consolidate space of storage within the network. That means it is easier to collaborate on the server and to the machine.
-- `Reliable`: most NAS supports RAID 0, RAID 1, RAID 5 which makes data safer. When the data stored on one drive has been destroyed, it can be recovered from another drive.
-- `Affordable`: NAS devices cost less than normal servers and have low energy consumption.
-- `Easy`: Fast and easy installation/configuration and administration
-#### Disavantages of NAS
-- `Network dependent`: Since files are typically shared with NAS devices over the LAN(Local area network, also used for normal traffic), they can cause congestion or can be affected by other traffic on the LAN. Therefore, NAS is not suitable for data transfer intensive applications.
-- `Minimal speed`: With low throughput and high latency, a NAS is not fast enough for high performance application: big database
+File storage là một phương pháp lưu trữ dữ liệu trong đó dữ liệu được tổ chức và quản lý dưới dạng tệp trong một hệ thống tệp (file system). Dữ liệu được lưu trữ theo cấu trúc thư mục (directory) và các thư mục con (subdirectory), tương tự như cách sắp xếp tệp và thư mục trên một máy tính cá nhân. File storage thường được sử dụng trong các hệ thống mạng chia sẻ tệp (file-sharing networks), máy chủ tệp (file servers), và các thiết bị lưu trữ mạng (NAS).
+#### Đặc điểm của File Storage:
+##### 1. Tổ chức tệp:
+- Dữ liệu được lưu trữ dưới dạng tệp và được sắp xếp trong các thư mục và thư mục con. 
+##### 2. Hệ thống tệp:
+- Sử dụng một hệ thống tệp để quản lý và tổ chức dữ liệu. Các hệ thống tệp phổ biến bao gồm: NTFS, FAT, HFS+, APFS, EXT4
+##### 3. Truy cập dễ dàng:
+- Dễ dàng truy cập và quản lý các tệp thông qua giao diện người dùng 
+##### 4. Quản lý quyền truy cập:
+- Hệ thống tệp cung cấp các cơ chế để quản lý permissions và ownership đối với các tệp và thư mục
+##### 5. Chia sẻ tệp:
+- Thường được sử dụng trong môi trường mạng để chia sẻ tệp giữa nhiều người dùng hoặc hệ thống
 
 ### 3. Block Storage
-Enterprise application like databases or enterprise resource planning (`ERP`) systems often require dedicated, low-latency storage for each host. This is analogous to direct-attached storage (`DAS`) or a storage area network (`SAN`)  
+Block storage là một phương pháp lưu trữ dữ liệu mà trong đó dữ liệu được chia thành các khối (blocks) có kích thước cố định. Mỗi khối dữ liệu được lưu trữ riêng biệt với một địa chỉ duy nhất, cho phép hệ thống truy xuất trực tiếp đến bất kỳ khối nào mà không cần phải đọc toàn bộ file. Block storage thường được sử dụng trong các hệ thống lưu trữ mạng (SAN), trong môi trường Cloud và các trung tâm dữ liệu, nhờ vào hiệu suất cao và khả năng quản lý linh hoạt.
+#### Đặc điểm của Block Storage:
+##### 1. Chia khối dữ liệu:
+- Dữ liệu được chia thành các khối có kích thước cố định (512 byte - 4KB)
+##### 2. Địa chỉ duy nhất:
+- Mỗi khối có một địa chỉ duy nhất cho phép truy cập trực tiếp đến bất kỳ khối nào mà không cần phải đọc toàn bộ file
+##### 3. Hiệu suất cao:
+- Block storage cung cấp hiệu suất cao, phù hợp với các ứng dụng yêu cầu truy cập dữ liệu nhanh chóng và độ trễ thấp như cơ sở dữ liệu và máy ảo
+##### 4. Tính linh hoạt:
+- Các khối có thể được sử dụng để tạo các hệ thống tệp, khối lượng dữ liệu (volumes), đĩa ảo( virtual disk) cung cấp tính linh hoạt trong việc quản lý dữ liệu
+##### 5. Khả năng mở rộng:
+- Block storage có thể dễ dàng mở rộng bằng cách thêm các khối lưu trữ bổ sung không ảnh hưởng đến hiệu suất hệ thống 
 
-#### Storage Area Network (SAN)
-SAN is a dedicated high-speed network or subnetwork that interconnects and presents shared pools of storage devices to multiple servers. Each server on the network can access hard drives in the SAN as if they were local disks directly attached to the server. When a host wants to access a storage device on the SAN, it sends out a block-based access request for the storage device.
+# Storage Snapshot Technology
+## Copy-on-Write Snapshots
+- Trước khi snapshot được tạo, hệ thống lưu metadata vào block gốc
+- Khi hệ thống thực thi lệnh write để bảo vệ 1 block, nó sẽ kích hoạt 3 luồng IOs:
+    - Snapshot utility sẽ read khối original trước khi khối đó được ghi
+    - Bản snapshot của block gốc được written ra ở 1 vùng lưu trữ  snapshot.
+    - Dữ liệu mới sẽ được ghi đè lên trên dữ liệu gốc
 
-SAN combines the flexibility and sharing capabilities of NAS with the much of the performance of Direct Attach Storage (DAS). However, it is far more complex and costly than NAS. A SAN consists of dedicated cabling: Fiber Channel(FC) or Ethernet based iSCSI, dedicated switches and storage hardware. It performs best when used with Fiber Channnel medium(optical fibers and a fiber channel switch) but it is very expensive, complex and difficult to manage. Ethernet-based iSCSI has reduced these challenges by encapsulating SCSI commands into IP packets that do not require an FC connection. It is particularly useful for small and midsize businesses that may not have the funds or expertise to support a Fiber Channel SAN. As SAN is a block level storage solution, it is best suited for high perfomance applications such as:
-- Databases (MS SQL, MySQL, PostgreSQL,...)
-- Media Libraries
-- Backup Archives
-- High Usage File Servers
-- E-mail Servers
-- Remote vaulting and mirroring
-- Heterogeneous platform support
-- Storage-level replication
-- Storage-level backups
+![](image3.png)
 
-#### Advantages of SAN
-- `Better disk utilization`: Rather than having several servers with various levels of hard drive utilization, a SAN allows to pool storage and dynamically allocate exactly what each server requires.
-- `Higher performance`: SAN performance is not affected by Ethernet traffic or local disk throughput bottlenecks. Data transmitted to and from a SAN is on its own private network partitioned off from user traffic, backup traffic and other SAN traffic
+Pros: Copy-on-write snapshots không tạo ra các bản sao của metadata => nhanh, gần như tức thì
 
+Cons: Đòi hỏi nhiều hiệu suất vì mỗi snapshot yêu cầu 1 lần đọc và 2 lần ghi
+
+## Redirect-on-Write Snapshots
+Sử dụng con trỏ để tham chiếu đến các khối snapshot-protected
+- Hệ thống thực thi lệnh write để thực hiện thay đổi đối với khối snapshot-protected 
+- Snapshot utility chuyển lệnh write đến 1 block mới và con trỏ được cập nhật
+- Dữ liệu cũ được giữ nguyên như 1 điểm tham chiếu thời điểm của block gốc
+
+![](./image4.png)
+
+Pros: Trái ngược với copy-on-write, redirect-on-write snapshots tiêu thụ ít tài nguyên hơn vì mỗi khối đã sửa đổi chỉ tạo ra 1 luồng IO write duy nhất
+Cons: Redirect-on-write phụ thuộc vào block gốc. Các sửa đổi bổ sung sẽ tạo ra các block mới. Trong trường hợp, snapshot bị xoá việc đối chiếu giữa nhiều block mới và block gốc sẽ trở nên phức tạp.
+
+## Split-Mirror Snapshots
+Tạo ra 1 bản sao hoàn chỉnh của storage volume gốc thay vì chỉ tạo snapshot cho các khối đã sửa đổi. Với split-mirror snapshots, có thể tạo snapshot cho toàn bộ hệ thống file, Logical unit numbers (LUNs) hoặc object storage volumes.
+
+Pros: Khôi phục dữ liệu, sao chép và lưu trữ đơn giản hơn.
+Toàn bộ ổ đĩa vẫn khả dụng ngay cả khi bản sao chính/bản gốc bị mất
+Cons: Vì snapshot utility tạo snapshot cho toàn bộ volume mỗi lần nên đây là quá trình chậm hơn và tăng gấp đôi dung lượng lưu trữ cần thiết
 
 
 
