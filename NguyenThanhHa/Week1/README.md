@@ -48,43 +48,6 @@ Block-level backups sẽ snapshot volume đang chạy và dữ liệu được �
 - `Giải nén và giải mã`: Nếu dữ liệu đã được nén và mã hoá, quá trình giải nén và giải mã sẽ diễn ra
 - `Chuyển dữ liệu về hệ thống nguồn`: Dữ liệu được khôi phục về vị trí gốc hoặc một vị trí mới theo yêu cầu.
 
-# Agent-based vs Agentless Backup
-
-## 1. Traditional Agent-based Backup (guest based backup)
-Agent-based backup còn được gọi là sao lưu dựa trên máy khách. Agent trong backup là module phần mềm được cài đặt trên mọi máy chủ để thực hiện một số tác vụ nhất định.Agent-based backup phù hợp cho các sản phẩm yêu cầu người dùng cài đặt phiên bản lightweight của phần mềm trên mỗi máy mà họ muốn bảo vệ. Nếu agent được cài đặt trên máy ảo thì nó sẽ xem máy ảo như là một máy vật lý. Agent trong trường hợp này đang đọc dữ liệu từ đĩa và truyền dữ liệu đến máy chủ sao lưu. Agent software nằm ở lớp kernel level ở trong hệ thống do đó nó có thể phát hiện các thay đổi ở cấp độ block-level trên máy chủ.
-
-![](agent-based.jpg)
-
-Agent-based backups không yêu cầu quét toàn bộ hệ thống tệp để xác định các thay đổi cho các bản sao lưu điều này làm nó hiệu quả hơn so với agentless backups cho máy chủ. Phải có tài nguyên local computing resources cho agent-based backups để thực hiện quá trình backup dữ liệu và chuyển chúng đến vị trí sao lưu phù hợp. Do đó, quá trình backup có thể ảnh hưởng đến hiệu suất ứng dụng nếu máy chủ không có đủ sức mạnh tính toán cần thiết cho quá trình backups khi xét đến khối lượng công việc cần phải backup nhiều.
-
-Ngoài ra, khi quản trị viên hệ thống làm việc trong môi trường bao gồm cả máy chủ vật lý và máy chủ ảo, agent-based backups thường được yêu cầu cho máy chủ vật lý. 
-
-### Image-based Backup
-Loại backups này sẽ chụp nhanh(`snapshot`) toàn bộ ổ đĩa và bộ nhớ của máy chủ. Không cần phải cài đặt lại hệ điều hành và khôi phục một bản vá của các tệp để sao chép hệ thống trước đó, điều này là cần thiết với các hệ thống sử dụng non-image-based backup. Ngay cả sau khi xảy ra lỗi hoàn toàn thì việc khôi phục toàn bộ hệ thống system image có thể được thực hiện trong vài phút và không có khả năng thiếu các tệp quan trọng, điều này có khả năng xảy ra trong non-image-based backup do chỉ hoạt động ở file level.  
-
-### Non-image-based Backup
-Non-image-based Backup hoạt động ở file level sử dụng hệ thống agent-based cho việc khôi phục các tệp bị mất, bị hỏng hoặc bị xoá. Loại backups này không thể khôi phục toàn bộ hệ thống. Tuy nhiên có thể khôi phục lại tệp rất chi tiết.
-
-## Pros:
-- Cả máy chủ vật lý và máy chủ ảo đều được bảo vệ theo cùng một phương pháp
-- Rất tin cậy do chúng sở hữu khả năng kiểm soát đáng kể đối với hệ thống máy chủ. Vì các agents được đặt ở cấp độ kernel level nên chúng cung cấp quyền truy cập trực tiếp vào các thay đổi trong các sector đĩa. Do đó người dùng được cung cấp bản sao lưu nhanh hơn và đáng tin cậy hơn.
-- Nhờ được tích hợp chặt chẽ với dịch vụ Microsoft's volume shadow copy nên các bản backups dựa trên agent-based có thể thiết lập các bản backups nhất quán với ứng dụng.  
-- Thích hợp với Highly Transactional Virtual Machines: Các agents có lợi cho highly transactional virtual machines với cơ sở dữ liệu bao gồm các thực thể như SQL hoặc exchange. Vì volume shadow service có thể ngắt các transactions này ở một snapshot nên có khả năng xảy ra lỗi. Ngoài ra, agent-based backups dựa vào các tài nguyên tính toán của máy đang được sao lưu nên tốc độ xử lý của nhiều giai đoạn được cải thiện.
-- Người sử hữu ứng dụng có thể quản lý backup và khôi phục lại Guest OS.
-- Đây là cách duy nhất để bảo vệ máy ảo VMware Fault Tolerant và máy ảo với Physical Raw Disk Mapping RDMS.
-## Cons:
-- Sử dụng tài nguyên CPU, memory, I/O và tài nguyên mạng cao hơn đáng kể trên các máy chủ ảo khi chạy backups
-- Cần cài đặt và quản lý agent trên mỗi máy ảo
-- Chi phí có thể cao đối với các giải pháp cấp phép theo từng agent thay vì cấp phép theo từng hypervisor
-- Có thể cần nhiều loại phương pháp sao lưu và khôi phục: VD: cần các chính sách sao lưu riêng cho các bản sao lưu tệp và thư mục, các bản sao lưu Microsoft Exchange, bare metal recovery,...
-- Các chiến lược khôi phục disaster phức tạp
-- Không có biện pháp bảo vệ cho các máy ảo ngoại tuyến và các máy ảo template
-- Có thể xảy ra downtimes và vấn đề bảo trì: Người quản trị phải khởi động lại hệ thống để cài đặt agent nên có thể xảy ra downtime trong quá trình cài đặt và cần thời gian để active đặc biệt là trong các mạng lớn.
-
-## 2. Agentless Backup (host-based backup)
-Agentless backup còn gọi là sao lưu dựa trên máy chủ, đề cập đến giải pháp không yêu cầu phải cài đặt agent trên mỗi máy ảo. Tuy nhiên điều quan trọng là phần mềm có thể đưa agent vào máy khách mà ta không hề biết.
-Giải pháp này tích hợp với VMware APIs for Data Protection (VADP) hoặc Microsoft VSS, tạo ra các bản snapshots nhanh, hiệu suất cao của các đĩa ảo gắn với các VMs. Phần mềm backup sẽ giao tiếp với VADP hoặc VSS và cho biết những gì nó muốn sao lưu. VADP và VSS thực hiện 1 số bước và lần lượt chuẩn bị dữ liệu để backup. Nhà cung cấp VSS/VADP sẽ snap ổ đĩa và cấp cho backup solution quyền truy cập vào snapshot bằng cách đưa tệp cho máy chủ backup. Sau đó backup solution sẽ sao lưu lại snapshot đó.
-
 <!--- Update: 8/8/2024 --->
 # Cloud Storage
 ### 1. Object storage
@@ -131,36 +94,62 @@ Block storage là một phương pháp lưu trữ dữ liệu mà trong đó d�
 ##### 5. Khả năng mở rộng:
 - Block storage có thể dễ dàng mở rộng bằng cách thêm các khối lưu trữ bổ sung không ảnh hưởng đến hiệu suất hệ thống 
 
+<!-- 9/8/2024 -->
 # Storage Snapshot Technology
+Snapshot là khả năng capture hoặc record lại trạng thái của dữ liệu tại bất kỳ thời điểm nào và lưu giữ cái bản snapshot đó để restore lại data trong trường hợp lỗi của thiết bị lưu trữ. Snapshot copy được thực hiện ngay lập tức và được cung cấp để các ứng dụng khác thực hiện backups, UAT, report và sao chép dữ liệu của ứng dụng. 
+
+![](image4.png)
+
 ## Copy-on-Write Snapshots
-- Trước khi snapshot được tạo, hệ thống lưu metadata vào block gốc
-- Khi hệ thống thực thi lệnh write để bảo vệ 1 block, nó sẽ kích hoạt 3 luồng IOs:
-    - Snapshot utility sẽ read khối original trước khi khối đó được ghi
-    - Bản snapshot của block gốc được written ra ở 1 vùng lưu trữ  snapshot.
-    - Dữ liệu mới sẽ được ghi đè lên trên dữ liệu gốc
+Theo phương pháp COW, các data block ở trong snapshot cần được sửa đổi phải qua một quy trình sao chép chúng ở 1 nơi khác. Giả sử như ta vừa mới lưu 1 file ta đang làm việc và sau khi lưu file này, file này được đưa vào như 1 phần của snapshot của storgare system. Khi chúng ta mở file và update một số nội dung của file, các data block của file đó sẽ được sửa đổi về mặt vật lý.
+
+Khi snapshot được tạo lần đầu, chỉ có meta-data về nơi original data được lưu sẽ được copy. Không có physical copy của data được thực hiện tại thời điểm snapshot được tạo ra lúc này. Do đó việc tạo snapshot là hiệu quả về thời gian và không gian lưu trữ. 
+
+![](./image8.png)
+
+Khi các blocks ở trên volume gốc bị thay đổi, dữ liệu gốc được sao chép vào không gian chỉ định trước (reserved storage capacity) dành riêng cho snapshot trước khi dữ liệu gốc bị ghi đè. Các khối data block gốc được copy chỉ 1 lần tại lần write request đầu tiên (copy-on-first-write). Quy trình này đảm bảo rằng dữ liệu snapshot data là consistent với chính xác thời gian mà snapshot được tạo. Sau khi tạo snapshot ban đầu, snapshot copy sẽ theo dõi các khối thay đổi trên original volume khi các thao tác ghi vào original volume được thực hiện.
+
+Trước khi ghi đè vào bất kỳ khối data blocks nào hiện có, COW sẽ sao chép và chuyển thông tin đó đến một nơi khác trên đĩa đến các block storage mới. Storage block mới này giờ sẽ chứa các thông tin gốc từ file bằng snapshot. Sau khi quy trình sao chép hoàn tất, hệ thống sẽ overwrite dữ liệu tệp đã được sửa đổi vào các khối original block.
+
+Quá trình COW gồm 3 I/O operations:
+- Read operation để sao chép các block gốc
+- Write operation để đưa chúng vào snapshot area trên disk
+- Write operation của dữ liệu đã sửa đổi đưa vào các block gốc
 
 ![](image3.png)
 
-Pros: Copy-on-write snapshots không tạo ra các bản sao của metadata => nhanh, gần như tức thì
+- Khi mà những cái hot data nằm ở SSD hoặc Flash và 1 snapshot được thực hiện và khi có thay đổi hoặc cập nhật xảy ra trên hot data, thì snapshot algorithm sẽ di chuyển các data block cũ trên SSD tới lower-tier storage như là SAS drive và ghi dữ liệu mới vào SSD do đó dữ được performance ngay cả khi data được update.
 
-Cons: Đòi hỏi nhiều hiệu suất vì mỗi snapshot yêu cầu 1 lần đọc và 2 lần ghi
+- Đòi hỏi nhiều hiệu suất vì mỗi snapshot yêu cầu 1 lần đọc và 2 lần ghi
+
+- Khi thực hiện thao tác restore operation từ 1 snapshot, storage system sẽ trải qua 1 quy trình quyết định nơi các khối blocks được giữ. Với mỗi block cần phải biết block đó có bị sửa đổi hay không. Nếu không bị sửa đổi, block sẽ được lấy từ block gốc. Nếu đã bị sửa đổi, hệ thống lưu trữ cần lấy data từ các data block nó được sao chép.
+
+-> Short-term hoặc temporary backups.
 
 ## Redirect-on-Write Snapshots
-Sử dụng con trỏ để tham chiếu đến các khối snapshot-protected
-- Hệ thống thực thi lệnh write để thực hiện thay đổi đối với khối snapshot-protected 
-- Snapshot utility chuyển lệnh write đến 1 block mới và con trỏ được cập nhật
-- Dữ liệu cũ được giữ nguyên như 1 điểm tham chiếu thời điểm của block gốc
 
-![](./image4.png)
+Giống với ROW, khi snapshot được tạo lần đầu, kể cả ROW chỉ có metadata về original data về nơi dữ liệu gốc mới đc sao chép. Snapshot được tối ưu cho write performance sao cho tất cả các thay đổi và cập nhật đều sẽ chuyển hướng tới block mới. Thay vì ghi một bản sao của original data tới vùng snapshot reserved space (cache, LUN reserve hoặc snapshot pool) + 1 bản copy dữ liệu thay đổi như với COW , ROW sẽ chuyển hướng redirect chỉ những dữ liệu thay đổi tới new blocks.
 
-Pros: Trái ngược với copy-on-write, redirect-on-write snapshots tiêu thụ ít tài nguyên hơn vì mỗi khối đã sửa đổi chỉ tạo ra 1 luồng IO write duy nhất
+![](image7.png)
 
-Cons: Redirect-on-write phụ thuộc vào block gốc. Các sửa đổi bổ sung sẽ tạo ra các block mới. Trong trường hợp, snapshot bị xoá việc đối chiếu giữa nhiều block mới và block gốc sẽ trở nên phức tạp.
+- Chỉ sử dụng 1 write I/O operation, cần ít tài nguyên tính toán hơn khi restore từ snapshot, vì các con trỏ snapshot luôn trỏ vào vị trí ban đầu của data block mà bản thân những data block gốc này bị khoá và không bao giờ có thể ghi đè khi mà snapshot còn tồn tại. 
+
+- Với ROW, original copy tại thời điểm snapshot và dữ liệu đã thay đổi nằm trên snapshot storage. Khi snapshot bị xoá, dữ liệu từ snapshot storage phải đối chiếu lại với original volume.
+- Khi tạo nhiều snapshots, việc truy cập vào original data và original volume cũng như đối chiếu khi xoá snapshot sẽ phức tạp.
+- Nếu hot data nằm trên SSD hoặc Flash và cần phải chỉnh sửa thì bản update mới sẽ chuyển sang ổ low-tier storage SAS -> ảnh hưởng hiệu suất.
 
 ## Split-Mirror Snapshots
 Tạo ra 1 bản sao hoàn chỉnh của storage volume gốc thay vì chỉ tạo snapshot cho các khối đã sửa đổi. Với split-mirror snapshots, có thể tạo snapshot cho toàn bộ hệ thống file, Logical unit numbers (LUNs) hoặc object storage volumes.
 
+Split-Mirror hoạt động qua 1 quy trình gồm 2 bước chính: tạo 1 bản sao dữ liệu (mirror) và sau đó tách biệt bản sao này khỏi original volume để trở thành 1 snapshot độc lập.
+
 ![](./image5.png)
+
+- Đầu tiên 1 bản sao của dữ liệu gốc được tạo ra. Quá trình này gọi là mirroring hoặc sao chép dữ liệu. Bản sao này sẽ được cập nhật liên tục để giữ cho nó luôn đồng bộ với dữ liệu gốc.
+- Trong thời gian mirror volume và original volume còn kết nối, mọi thay đổi hoặc cập nhật trên dữ liệu gốc sẽ được phản ánh ngay lập tức (ghi đè) trên  mirror volume -> Đảm bảo mirror volume luôn giữ 1 bản sao chính xác của original data
+- Khi cần tạo snapshot, mirror volume sẽ được tách ra khỏi original volume -> split 
+- Sau khi split, mirror volume trở thành 1 bản copy độc lập và không còn được cập nhật đồng bộ với dữ liệu gốc nữa. Tại thời điểm này, mirror volume đại diện cho trạng thái của original data tại thời điểm split -> snapshot của original volume
+- Snapshot này có thể được sử dụng cho nhiều mục đích khác nhau: backup, restore, analysis,...Vì snapshot là 1 bản sao hoàn chỉnh và độc lập với original data nên có thể gắn vào hệ thống hoặc môi trường khác mà không ảnh hưởng đến original data.
 
 Pros: Khôi phục dữ liệu, sao chép và lưu trữ đơn giản hơn.
 Toàn bộ ổ đĩa vẫn khả dụng ngay cả khi bản sao chính/bản gốc bị mất
@@ -173,5 +162,40 @@ Log files được sử dụng để theo dõi các lần write vào volume gố
 
 ## Copy-on-Write with background copy
 
+# Agent-based vs Agentless Backup
 
+## 1. Traditional Agent-based Backup (guest based backup)
+Agent-based backup còn được gọi là sao lưu dựa trên máy khách. Agent trong backup là module phần mềm được cài đặt trên mọi máy chủ để thực hiện một số tác vụ nhất định.Agent-based backup phù hợp cho các sản phẩm yêu cầu người dùng cài đặt phiên bản lightweight của phần mềm trên mỗi máy mà họ muốn bảo vệ. Nếu agent được cài đặt trên máy ảo thì nó sẽ xem máy ảo như là một máy vật lý. Agent trong trường hợp này đang đọc dữ liệu từ đĩa và truyền dữ liệu đến máy chủ sao lưu. Agent software nằm ở lớp kernel level ở trong hệ thống do đó nó có thể phát hiện các thay đổi ở cấp độ block-level trên máy chủ.
+
+![](agent-based.jpg)
+
+Agent-based backups không yêu cầu quét toàn bộ hệ thống tệp để xác định các thay đổi cho các bản sao lưu điều này làm nó hiệu quả hơn so với agentless backups cho máy chủ. Phải có tài nguyên local computing resources cho agent-based backups để thực hiện quá trình backup dữ liệu và chuyển chúng đến vị trí sao lưu phù hợp. Do đó, quá trình backup có thể ảnh hưởng đến hiệu suất ứng dụng nếu máy chủ không có đủ sức mạnh tính toán cần thiết cho quá trình backups khi xét đến khối lượng công việc cần phải backup nhiều.
+
+Ngoài ra, khi quản trị viên hệ thống làm việc trong môi trường bao gồm cả máy chủ vật lý và máy chủ ảo, agent-based backups thường được yêu cầu cho máy chủ vật lý. 
+
+### Image-based Backup
+Loại backups này sẽ chụp nhanh(`snapshot`) toàn bộ ổ đĩa và bộ nhớ của máy chủ. Không cần phải cài đặt lại hệ điều hành và khôi phục một bản vá của các tệp để sao chép hệ thống trước đó, điều này là cần thiết với các hệ thống sử dụng non-image-based backup. Ngay cả sau khi xảy ra lỗi hoàn toàn thì việc khôi phục toàn bộ hệ thống system image có thể được thực hiện trong vài phút và không có khả năng thiếu các tệp quan trọng, điều này có khả năng xảy ra trong non-image-based backup do chỉ hoạt động ở file level.  
+
+### Non-image-based Backup
+Non-image-based Backup hoạt động ở file level sử dụng hệ thống agent-based cho việc khôi phục các tệp bị mất, bị hỏng hoặc bị xoá. Loại backups này không thể khôi phục toàn bộ hệ thống. Tuy nhiên có thể khôi phục lại tệp rất chi tiết.
+
+## Pros:
+- Cả máy chủ vật lý và máy chủ ảo đều được bảo vệ theo cùng một phương pháp
+- Rất tin cậy do chúng sở hữu khả năng kiểm soát đáng kể đối với hệ thống máy chủ. Vì các agents được đặt ở cấp độ kernel level nên chúng cung cấp quyền truy cập trực tiếp vào các thay đổi trong các sector đĩa. Do đó người dùng được cung cấp bản sao lưu nhanh hơn và đáng tin cậy hơn.
+- Nhờ được tích hợp chặt chẽ với dịch vụ Microsoft's volume shadow copy nên các bản backups dựa trên agent-based có thể thiết lập các bản backups nhất quán với ứng dụng.  
+- Thích hợp với Highly Transactional Virtual Machines: Các agents có lợi cho highly transactional virtual machines với cơ sở dữ liệu bao gồm các thực thể như SQL hoặc exchange. Vì volume shadow service có thể ngắt các transactions này ở một snapshot nên có khả năng xảy ra lỗi. Ngoài ra, agent-based backups dựa vào các tài nguyên tính toán của máy đang được sao lưu nên tốc độ xử lý của nhiều giai đoạn được cải thiện.
+- Người sử hữu ứng dụng có thể quản lý backup và khôi phục lại Guest OS.
+- Đây là cách duy nhất để bảo vệ máy ảo VMware Fault Tolerant và máy ảo với Physical Raw Disk Mapping RDMS.
+## Cons:
+- Sử dụng tài nguyên CPU, memory, I/O và tài nguyên mạng cao hơn đáng kể trên các máy chủ ảo khi chạy backups
+- Cần cài đặt và quản lý agent trên mỗi máy ảo
+- Chi phí có thể cao đối với các giải pháp cấp phép theo từng agent thay vì cấp phép theo từng hypervisor
+- Có thể cần nhiều loại phương pháp sao lưu và khôi phục: VD: cần các chính sách sao lưu riêng cho các bản sao lưu tệp và thư mục, các bản sao lưu Microsoft Exchange, bare metal recovery,...
+- Các chiến lược khôi phục disaster phức tạp
+- Không có biện pháp bảo vệ cho các máy ảo ngoại tuyến và các máy ảo template
+- Có thể xảy ra downtimes và vấn đề bảo trì: Người quản trị phải khởi động lại hệ thống để cài đặt agent nên có thể xảy ra downtime trong quá trình cài đặt và cần thời gian để active đặc biệt là trong các mạng lớn.
+
+## 2. Agentless Backup (host-based backup)
+Agentless backup còn gọi là sao lưu dựa trên máy chủ, đề cập đến giải pháp không yêu cầu phải cài đặt agent trên mỗi máy ảo. Tuy nhiên điều quan trọng là phần mềm có thể đưa agent vào máy khách mà ta không hề biết.
+Giải pháp này tích hợp với VMware APIs for Data Protection (VADP) hoặc Microsoft VSS, tạo ra các bản snapshots nhanh, hiệu suất cao của các đĩa ảo gắn với các VMs. Phần mềm backup sẽ giao tiếp với VADP hoặc VSS và cho biết những gì nó muốn sao lưu. VADP và VSS thực hiện 1 số bước và lần lượt chuẩn bị dữ liệu để backup. Nhà cung cấp VSS/VADP sẽ snap ổ đĩa và cấp cho backup solution quyền truy cập vào snapshot bằng cách đưa tệp cho máy chủ backup. Sau đó backup solution sẽ sao lưu lại snapshot đó.
 
