@@ -156,11 +156,17 @@ Toàn bộ ổ đĩa vẫn khả dụng ngay cả khi bản sao chính/bản g�
 
 Cons: Vì snapshot utility tạo snapshot cho toàn bộ volume mỗi lần nên đây là quá trình chậm hơn và tăng gấp đôi dung lượng lưu trữ cần thiết
 
-## Log structure file architecture
-Log files được sử dụng để theo dõi các lần write vào volume gốc. Khi cần restore lại data, các transactions được ghi trong logs track sẽ chạy theo hướng ngược lại. Mỗi yêu cầu writes được ghi vào volume gốc giống với cơ sở dữ liệu quan hệ
+## Copy-on-Write with Background Copy
 
+Là snapshot kết hợp giữa CoW và Split-Mirror Snapshots.
+- Tạo Snapshot ngay lập tức: Khi snapshot ban đầu được tạo, nó sử dụng kỹ thuật CoW. Chỉ có metadata được sao chép và các data blocks không được sao chép tại thời điểm snapshot. Snapshot được tạo ra gần như ngay lập tức với minimal impact on performance và storage
+- Background Copy Process: Sau khi snapshot ban đầu được khởi tạo, 1 tiến trình không đồng bộ chạy trong nền sẽ sao chép các data block từ volume gốc sang snapshot storage. -> Snapshot trở thành 1 bản sao đầy đủ của dữ liệu, giống như split-mirror snapshot.
+- Khi có sự thay đổi trong quá trình background processt thì cơ chế CoW đảm bảo snapshot giữ được tính nhất quán với trạng thái dữ liệu vào thời điểm tạo.
 
-## Copy-on-Write with background copy
+## Continuous Data Protection (CDP) 
+
+- Tạo snapshot thường xuyên của original data bởi policies (xác định tần suất và điều kiện để tạo snapshot). CDP lý tưởng nhất là được tạo ra theo thời gian thực. 
+- Mỗi khi có thay đổi được thực hiện trên dữ liệu gốc, CDP sẽ cập nhật snapshot của bản sao gốc để đảm bảo snapshot luôn phản ánh trạng thái dữ liệu mới nhất.
 
 # Agent-based vs Agentless Backup
 
