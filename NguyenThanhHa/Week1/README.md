@@ -154,14 +154,24 @@ Sử dụng con trỏ để tham chiếu đến các khối snapshot-protected
 ![](./image4.png)
 
 Pros: Trái ngược với copy-on-write, redirect-on-write snapshots tiêu thụ ít tài nguyên hơn vì mỗi khối đã sửa đổi chỉ tạo ra 1 luồng IO write duy nhất
+
 Cons: Redirect-on-write phụ thuộc vào block gốc. Các sửa đổi bổ sung sẽ tạo ra các block mới. Trong trường hợp, snapshot bị xoá việc đối chiếu giữa nhiều block mới và block gốc sẽ trở nên phức tạp.
 
 ## Split-Mirror Snapshots
 Tạo ra 1 bản sao hoàn chỉnh của storage volume gốc thay vì chỉ tạo snapshot cho các khối đã sửa đổi. Với split-mirror snapshots, có thể tạo snapshot cho toàn bộ hệ thống file, Logical unit numbers (LUNs) hoặc object storage volumes.
 
+![](./image5.png)
+
 Pros: Khôi phục dữ liệu, sao chép và lưu trữ đơn giản hơn.
 Toàn bộ ổ đĩa vẫn khả dụng ngay cả khi bản sao chính/bản gốc bị mất
+
 Cons: Vì snapshot utility tạo snapshot cho toàn bộ volume mỗi lần nên đây là quá trình chậm hơn và tăng gấp đôi dung lượng lưu trữ cần thiết
+
+## Log structure file architecture
+Log files được sử dụng để theo dõi các lần write vào volume gốc. Khi cần restore lại data, các transactions được ghi trong logs track sẽ chạy theo hướng ngược lại. Mỗi yêu cầu writes được ghi vào volume gốc giống với cơ sở dữ liệu quan hệ
+
+
+## Copy-on-Write with background copy
 
 
 
