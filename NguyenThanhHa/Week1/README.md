@@ -205,3 +205,51 @@ Non-image-based Backup hoạt động ở file level sử dụng hệ thống ag
 Agentless backup còn gọi là sao lưu dựa trên máy chủ, đề cập đến giải pháp không yêu cầu phải cài đặt agent trên mỗi máy ảo. Tuy nhiên điều quan trọng là phần mềm có thể đưa agent vào máy khách mà ta không hề biết.
 Giải pháp này tích hợp với VMware APIs for Data Protection (VADP) hoặc Microsoft VSS, tạo ra các bản snapshots nhanh, hiệu suất cao của các đĩa ảo gắn với các VMs. Phần mềm backup sẽ giao tiếp với VADP hoặc VSS và cho biết những gì nó muốn sao lưu. VADP và VSS thực hiện 1 số bước và lần lượt chuẩn bị dữ liệu để backup. Nhà cung cấp VSS/VADP sẽ snap ổ đĩa và cấp cho backup solution quyền truy cập vào snapshot bằng cách đưa tệp cho máy chủ backup. Sau đó backup solution sẽ sao lưu lại snapshot đó.
 
+
+
+
+# Agent-Based VM Backup and Recovery
+
+Khi sử dụng agent-based backup coi các VMs như là các máy vật lý và tạo image-based backups của VMs đó. Có thể khôi phục hoàn toàn data đến 1 con VM khác khi cùng hypervisor hoặc ở file-level,object-level recovery.
+
+Recovery scenarios được cung cấp cho VMs:
+- Bare metal recovery to the same hypervisor
+- File-level recovery
+- Object-level recovery
+- Universal object recovery
+
+# Physical Machine Backup
+- Đầu tiên cài Physical Machine Agent (PMA) hay Transporter cho Physical Machine OS. Kết nối giữa Director và PMA được bảo mật bằng Certificate và Pre-shared Key được sinh ra bởi Director và inject vào trong PMA. 
+
+Physical machine backup jobs :
+- Identify a physical machine that you need to backup.
+
+- Choose a backup repository for storing backups. 
+
+- Set the backup job schedule.
+
+- Specify your retention policy.
+
+- Configure the backup job options. 
+
+Once the physical machine backup job has started, NAKIVO Backup & Replication captures the necessary data blocks from the physical machine and sends them to the selected backup repository for storage. The backed up data then can be accessed and recovered whenever needed. 
+
+![](image9.png)
+
+# Director
+
+Director is the central management instance of the product. It provides Web interface, locates and maintains the inventory, provides users with the ability to create and run jobs, manages Backup Repositories, Transporters, and other product elements.
+
+![](./image10.png)
+
+# Transporter
+The Transporter is the component of the product that does all of the heavy lifting. It performs backup, replication, and recovery, as well as data compression, deduplication, and encryption. An instance of the Transporter is automatically installed along with the Director to enable backup, replication, and recovery out of the box. The default Transporter is called "Onboard Transporter", and it must not be removed or added to the product by another Director.
+
+![](./image11.png)
+
+# Virtual Machine Backup
+- Works in a virtual environment and uses an image-based approach to VM backup. It is an agentless application that does not require you to install any additional software inside the VM guest OS to retrieve VM data. It exploits virtualization platforms' snapshot capabilities to back up VMs. 
+- When initiate a VM backup, requests a virtualization platform to create a VM snapshot which is basically a point-in-time copy of a VM including its configuration, OS, applications, associated data, system state, and so on. The snapshot is used as a source of data for backup. Copying of the data from the source datastore is performed at a block level. 
+- Fetches the VM data, performs compression and deduplication, and finally stores the backup files in the repository
+
+![](./image12.png)
