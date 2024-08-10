@@ -167,3 +167,55 @@ Remove host bằng lệnh:
 ceph orch host drain ceph-osd-01 #Ngừng các trình nền chạy trên host
 ceph orch host rm ceph-osd-01 #Sau khi các trình nền đã ngừng
 ```
+## 4. Tạo pool
+### 4.1 Replicated pool:
+- Đầu tiên, ta cần phải tạo 1 rule cho pool:
+```
+ceph osd crush rule create-replicated rep_hdd_osd default osd hdd
+#Tạo 1 pool replicated, với failure-domain-type osd, root là default và áp dụng lên hdd
+```
+Sau đó, tạo 1 pool:
+```
+ceph osd pool create pool_1 8 8 rep_hdd_osd 3
+# Pool_1 với pg_num là 8, theo luật rep_hdd_osd và replicated-count là 3
+```
+### 4.2 Erasure coding Pool
+- Đầu tiên, ta cần phải tạo 1 EC profile:
+```
+ceph osd erasure-code-profile set ec_hdd_osd k=2 m=1 crush-failure-domain=osd crush-root=default
+# Tạo 1 ec_profile với k=2, m=1 => ratio: 1.5, failure-domain là osd và crush-root=default
+```
+- Sau đó, tạo 1 pool:
+```
+ceph osd pool create ec_pool_1 8 8 erasure ec_hdd_osd
+```
+
+### 4.3 Xóa pool
+```
+ceph config set mon mon_allow_pool_delete true
+ceph osd pool delete <pool-name> <pool-name> --yes-i-really-really-mean-it
+ceph config set mon mon_allow_pool_delete false
+```
+
+### 4.4 Kiểm tra các PG bị lỗi:
+- Lấy ra các PG bị lỗi:
+```
+ceph pg dump | grep -E "undersized|inactive"     
+```
+- Kiểm tra đầy đủ thông tin của PG lỗi:
+```
+ceph pg <PG_ID> query
+ceph pg repair <PG ID>
+```
+
+### 5 RADOS
+
+- Cách thêm object vào 1 pool thông qua rados:
+```
+rados -p rep3_pool_rados put object_1 hello.txt
+```
+
+- Kiểm tra object có trong pool:
+```
+ceph osd map rep3_pool_rados object_1 -f json-pretty
+```
