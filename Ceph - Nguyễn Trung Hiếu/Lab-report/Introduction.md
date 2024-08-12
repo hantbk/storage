@@ -4,8 +4,8 @@
 ## I. Định nghĩa về CEPH và RADOS:
 - Ceph là 1 nền tảng mã nguồn mở, hệ thống lưu trữ bằng phần cứng, phát triển và bảo trì bởi Red Hat.
 - Được sinh ra để tránh vấn đề sở hữu độc quyền của DataCenter.
-![alt text](/Picture/image.png)
-![alt text](/Picture/image-1.png)
+![alt text](../Picture/intro.png)
+![alt text](../Picture/image-1.png)
 - Ceph là một (Software-Defined Storage): Hệ thống lưu trữ định dạng bằng phần mềm, trong đó phần mềm điều khiển các nhiệm vụ và chức năng liên quan đến lưu trữ độc lập với phần cứng cơ bản. SDS trừu tượng hóa tài nguyên lưu trữ khỏi phần cứng vật lý, cung cấp tính linh hoạt, mở rộng. Các lợi thế của SDS
     - Portable: Miễn chạy được linux là chạy được ceph
     - Abstract: tách rõ phần mềm và phần cứng
@@ -14,12 +14,12 @@
     - Có Restful API
 
 - Một object được đưa vào trong 1 cụm ceph, sẽ đi theo quá trình sau: Object -> Pools -> Placement Group -> OSD
-![alt text](/Picture/image-8.png)
+![alt text](../Picture/image-8.png)
 
-- RADOS (Reliable Autonomic Distributed Object Storelà một thành phần cốt lõi của hệ thống lưu trữ Ceph. Đây là một hệ thống lưu trữ đối tượng phân tán, cung cấp nền tảng cho các dịch vụ lưu trữ khác của Ceph như RADOS Block Device (RBD), RADOS Gateway và Ceph File System.
+
 
 ## II. Các thành phần trong 1 cụm Ceph:
-![alt text](/Picture/image-2.png)
+![alt text](../Picture/image-2.png)
 - Monitors: Một Ceph Monitor (ceph-mon) duy trì các bản đồ về trạng thái của cụm, bao gồm bản đồ monitor, bản đồ quản lý, bản đồ OSD, bản đồ MDS và bản đồ CRUSH. Những bản đồ này là trạng thái quan trọng của cụm cần thiết để các daemon Ceph phối hợp với nhau. Monitors cũng chịu trách nhiệm quản lý xác thực giữa các daemon và khách hàng. Thông thường cần ít nhất ba monitor để đảm bảo tính dự phòng và khả năng sẵn sàng cao.
     - Nếu tất cả các Monitor down thì cụm ceph cũng sẽ down, mất đi khả năng xác định vị trí của dữ liệu, thực hiện các thao tác đọc ghi. Đồng thời làm tăng nguy cơ mất dữ liệu khi có OSD down.
 - Managers: Một tiến trình Ceph Manager (ceph-mgr) chịu trách nhiệm theo dõi các số liệu hoạt động và trạng thái hiện tại của cụm Ceph, bao gồm sử dụng lưu trữ, số liệu hiệu suất hiện tại và tải hệ thống. Các tiến trình Ceph Manager cũng chứa các mô-đun dựa trên Python để quản lý và tiết lộ thông tin về cụm Ceph, bao gồm Trang tổng quan Ceph dựa trên web và REST API. Thông thường cần ít nhất hai manager để đảm bảo khả năng sẵn có cao.
@@ -29,7 +29,7 @@
 
 - MDSs: Một Máy Chủ Dữ Liệu Ceph (MDS, ceph-mds) lưu trữ dữ liệu về siêu dữ liệu cho Hệ thống Tệp Ceph. Máy Chủ Dữ Liệu Ceph cho phép người dùng CephFS chạy các lệnh cơ bản (như ls, find, v.v.) mà không gây áp lực lên Cụm Lưu Trữ Ceph.
 - Gateway: Cổng giao tiếp giữa cụm ceph và client ở ngoài.
-![alt text](/Picture/image-3.png)
+![alt text](../Picture/image-3.png)
 
 
 # III. PLACEMENT GROUP:
@@ -37,12 +37,12 @@
 - Tại sao lại có Placement Group? :
   - Có thể chia các Placement Group sang nhiều node OSD khác nhau, tăng tính HA, và mỗi OSD chỉ cần đáp ứng điều kiện là đủ dung lượng để chứa placement group đó, không quan trọng về thiết bị phần cứng phải giống nhau.
   - Số lượng PG trên các osd là khác nhau, tùy vào dung lượng và weight được set của OSD
-  ![alt text](/Picture/image-9.png)
+  ![alt text](../Picture/image-9.png)
   - Nhiều Placement Group: Hồi phục nhanh hơn, dữ liệu được phân bố đều hơn, tuy nhiên dễ bị mất dữ liệu khi gặp >3-failure (Trong trường hợp lưu bằng EC)
   - Ít Placement Group: Hồi phục lâu hơn, nhưng sẽ tránh phần lớn các trường hợp bị mất data do >3-failure. 
-  ![alt text](/Picture/image-10.png)
+  ![alt text](../Picture/image-10.png)
   => Cần tách data ra khắp các failure-domain cao như (rack, row, data center) để tránh sập mà làm mất data.
-  ![alt text](/Picture/image-11.png)
+  ![alt text](../Picture/image-11.png)
   - Số Placement group hợp lý thường được tính bằng:
   ```
   Total PGs = (Total_number_of_OSD * 100) / max_replication_count
@@ -52,13 +52,13 @@
 # IV. POOL:
 - Một logical partition để lưu trữ các object.
 - Một RADOS Pool có thể lưu trữ dữ liệu và chia thành các placement group bằng 2 cách:
-![alt text](/Picture/image-13.png)
+![alt text](../Picture/image-13.png)
 -  Replication: 
     - Lưu trữ hoàn toàn dữ liệu của object vào một placement group.
     - Thường sẽ là lưu trữ thành 3 bản.
     - Lưu mỗi placement group ở một osd theo luật CRUSH.
     - Hồi phục nhanh bằng cách đọc các copy còn sống.
-- Erasure coding: ![alt text](/Picture/image-5.png)
+- Erasure coding: ![alt text](../Picture/image-5.png)
     - Mỗi PG "Shard" chứa một phần data.
     - Chia object thành K-shard.
     - Thêm m shard cho mỗi object cho parity/redundancy
@@ -66,7 +66,7 @@
     - Lưu trữ các shard lên các osd theo luật CRUSH
     - Thường dành cho các object lớn, ít thay đổi.
 - Một cluster thường có thể chứa nhiều pool cùng 1 lúc. Và mỗi pool có thể có các luật khác nhau để lưu object để dễ dàng mở rộng, thay đổi linh hoạt:
-![alt text](/Picture/image-12.png)
+![alt text](../Picture/image-12.png)
 - Tạo pool bằng lênh sau:
 ```
 ceph osd pool create <poolname> [<pg_num> [<pgp_num>]] <crush-rule-name> / {replicated|erasure} {replicated-num|erasure-code-profile}
@@ -127,7 +127,7 @@ ceph osd pool set pool1 pg_num_min 10
     - Id của Placement Group - PGid
 - Đầu ra:
     - Danh sách thứ tự các OSD hợp lý có thể đưa dữ liệu vào.
-![alt text](/Picture/image-4.png)
+![alt text](../Picture/image-4.png)
  - Khi các cluster chạm ngưỡng sau:
    - Nếu > 85% sẽ có cảnh báo đầy dữ liệu
    - Nếu > 90% sẽ biến cụm cluster trở thành Read-only cluster
