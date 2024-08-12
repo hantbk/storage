@@ -1,4 +1,4 @@
-### Lab 6/8/2024, triển khai local 1 cụm ceph đơn giản bằng cephadm
+# Lab week 1, triển khai local 1 cụm ceph đơn giản bằng cephadm
 
 ## 1. Quy hoạch cụm ceph:
 
