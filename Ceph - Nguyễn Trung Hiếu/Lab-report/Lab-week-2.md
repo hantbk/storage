@@ -47,3 +47,23 @@ ceph osd pool application enable default.rgw.log rgw
 radosgw-admin user create --uid="admin-hieu" --display-name="admin-hieu"
 ```
 
+# B. RDB:
+
+## 1. Thêm label và service rdb cho host và pool:
+- Thêm label rdb:
+```
+ceph orch host label add trunghieu-vdt4 rdb
+```
+- Enable application rdb cho các pool:
+```
+ceph osd pool application enable <pool-name> rbd
+```
+## 2. Tạo images RDB:
+Tạo 1 rbd images bằng lệnh sau:
+```
+rbd create <pool-name>/<image-name> --size <size>
+```
+Hoặc, tạo 1 snapshot bằng lệnh sau:
+```
+rbd snap create <pool-name>/<image-name>@<snapshot-name>
+```
