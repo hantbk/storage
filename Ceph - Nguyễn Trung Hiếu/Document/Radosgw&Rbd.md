@@ -103,3 +103,4 @@ RBD images là các thiết bị khối đơn giản được phân mảnh trên
 
 Điểm quan trọng của RBD là nó có thể được sử dụng làm ổ đĩa lưu trữ của máy ảo trong KVM. Do nó phân tán trên nhóm máy chủ OSD, máy ảo có thể được di chuyển nóng giữa các CPU trong cụm bằng cách tắt máy ảo ở CPU này và khởi động lại ở CPU khác, khiến người dùng không hề biết rằng các máy ảo vừa được di chuyển.
 
+

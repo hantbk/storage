@@ -208,6 +208,11 @@ ceph pg <PG_ID> query
 ceph pg repair <PG ID>
 ```
 
+### 4.5 Liệt kê các pool:
+- Sử dụng 
+```
+ceph osd lspools
+```
 ### 5 RADOS
 
 - Cách thêm object vào 1 pool thông qua rados:
