@@ -10,7 +10,7 @@ the backup data.
 ## Control Plane
 The control plane is a crucial network component, making decisions on how data should be managed, routed, and processed. It acts as a supervisor of data, coordinating communication between different components and collecting data from the data plane.
 
-Control planes utilize various protocols, such as:
+`Control planes` utilize various protocols, such as:
 - Routing protocols (like BGP, OSPF, and IS-IS)
 - Network management protocols (SNMP)
 - Application layer protocols (HTTP and FTP)
@@ -23,7 +23,7 @@ These protocols often employ software-defined networking (SDN) to create virtual
 
 ## Data Plane
 
-While the control plane supervises and directs, the data plane is responsible for the actual movement of data from one system to another. It is the workhorse that delivers data to end users from systems and vice versa.
+While the control plane supervises and directs, the `data plane` is responsible for the actual movement of data from one system to another. It is the workhorse that delivers data to end users from systems and vice versa.
 Some examples of data planes include:
 
 - Ethernet networks
@@ -37,10 +37,23 @@ Data planes allow organizations to quickly and securely transfer data between sy
 
 By using dedicated networks, organizations can keep data secure through encryption, dedicated networks, and access monitoring to prevent unauthorized access of data.
 
-## Key differences
+## Key differences between Data plane vs. Control plane
 
-The main differences between control and data planes are their purpose and how they communicate between different systems. The control plane decides how data is managed, routed, and processed, while the data plane is responsible for the actual moving of data. For example, the control plane decides how packets should be routed, and the data plane carries out those instructions by forwarding the packets.
+The main differences between control and data planes are their purpose and how they communicate between different systems. The `control plane` decides `how data is managed, routed, and processed`, while the `data plane` is responsible for `the actual moving of data`. For example, the control plane decides how packets should be routed, and the data plane carries out those instructions by forwarding the packets.
 
+Along with doing different jobs, control planes and data planes exist in different areas. While the control plane runs in the cloud, the data plane runs in the data processing area.
+
+They also use different functions to do their jobs. Control planes use protocols to communicate between different systems, mostly common routing protocols like BGP, OSPF, and IS-IS or network management protocols like SNMP. These protocols enable the control plane to make decisions on how data should be managed, routed, and processed.
+
+Data planes use `dedicated networks` to communicate between different systems. Examples of dedicated networks used in data planes include Ethernet and Wi-Fi networks, cellular networks, satellite communications, virtualized networks, and dedicated networks used in industrial control systems or IoT. These networks enable the data plane to deliver data to end users from systems and vice versa.
+
+While both the control plane and data plane are integral to network management, they perform distinct roles.
+
+Control Plane  | Data Plane
+------------- | -------------
+Determines how data should be managed, routed and processes  | Responsible for moving packets from source to destination
+Builds and maintains the IP routing table  | Forwards actual IP packets based on the control plane's logic
+Packets are processed by the router to update the routing table | Forwards packets based on the built logic of the control plane
 
 
 
