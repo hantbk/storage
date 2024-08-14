@@ -278,6 +278,55 @@ s3cmd del s3://bucket_3/folder_2/ --recursive
 delete: 's3://bucket_3/folder_2/hello.txt'
 delete: 's3://bucket_3/folder_2/hello_bk.txt'
 ```
+
+## 9. Realm, Zone, Zonegroup:
+- Realm, zone và zonegroup là các khái niệm quan trọng trong việc setup một cụm multi-site - cấu hình cho phép quản lý và đồng bộ hóa dữ liệu giữa nhiều cụm Ceph khác nhau.
+- Một realm chứa các cài đặt và quản lý các zonegroup. Để tạo 1 realm, ta cần nhập lệnh như sau:
+```
+radosgw-admin realm create --rgw-realm=vdtcloud --default
+{
+    "id": "3d577d32-fccf-4951-b59b-22154f4dfddd",
+    "name": "vdtcloud",
+    "current_period": "e14d3a02-2c31-4f05-ac9a-8a372adfd715",
+    "epoch": 1
+}
+```
+- Một zonegroup sẽ là một tập hợp các zone trong Ceph. Các zone trong cùng một zonegroup có thể chia sẻ cùng một tập các pools và user. Các bucket khi được tạo sẽ được sở hữu bởi 1 zonegroup, và object data của các bucket đó chỉ có thể lưu trữ các bản copy sang các zone khác trong cùng 1 zone group:
+- Để tạo 1 zonegroup, ta sử dụng lệnh:
+```
+radosgw-admin radosgw-admin zonegroup create --rgw-zonegroup=zonegroup_1 --rgw-realm=vdtcloud --endpoints=http://<RADOSGW-IP>:8888 
+```
+<em>Lưu ý, nếu realm chỉ có 1 zonegroup, ta sẽ thêm cờ `--default` vào đây để mặc định đây sẽ là zonegroup chính của realm, và các zone mới được tạo sẽ mặc định nằm trong zonegroup này.</em>
+- Kết quả sau khi chạy lệnh trên:
+```
+{
+    "id": "5e77664a-5cc2-4e86-b0b6-e27b30d5209d",
+    "name": "zonegroup_1",
+    "api_name": "zonegroup_1",
+    "is_master": "false",
+    "endpoints": [
+        "http://<RADOSGW-IP>:8888"
+    ],
+    "hostnames": [],
+    "hostnames_s3website": [],
+    "master_zone": "",
+    "zones": [],
+    "placement_targets": [],
+    "default_placement": "",
+    "realm_id": "3d577d32-fccf-4951-b59b-22154f4dfddd",
+    "sync_policy": {
+        "groups": []
+    }
+}
+```
+- Tạo 1 master zone (zone chính, nơi các resources chính của ứng dụng/dịch vụ được triển khai) mới lên trên cụm ceph thông qua lệnh:
+```
+radosgw-admin zone create --rgw-zonegroup=zonegroup_1 \
+                            --rgw-zone=master_zone \
+                            --master --default \
+                            --endpoints=S3_ENDPOINT
+```
+
 # B. RDB:
 
 ## 1. Thêm label và service rdb cho host và pool:
@@ -312,6 +361,7 @@ loop0                                                                           
 loop1                                                                                                   7:1    0  63.5M  1 loop /snap/core20/1891
 loop2                                                                                                   7:2    0 111.9M  1 loop /snap/lxd/24322
 loop3                                                                                                   7:3    0    87M  1 loop /snap/lxd/29351
+loop4                                                                                                   7:4    0  53.2M  1 loop /snap/snapd/19122
 loop4                                                                                                   7:4    0  53.2M  1 loop /snap/snapd/19122
 loop5                                                                                                   7:5    0  38.8M  1 loop /snap/snapd/21759
 rbd0                                                                                                  251:0    0    10G  0 disk
