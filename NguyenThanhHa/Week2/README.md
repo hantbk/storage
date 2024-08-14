@@ -55,25 +55,3 @@ Determines how data should be managed, routed and processes  | Responsible for m
 Builds and maintains the IP routing table  | Forwards actual IP packets based on the control plane's logic
 Packets are processed by the router to update the routing table | Forwards packets based on the built logic of the control plane
 
-
-
-# Data Isolation and Residency
-
-- The control plane orchestrates protection and recovery of assets, storing metadata and managing the backup data. Veritas deploys
-a separate control and data plane for each customer in each of their cloud service provider regions that they wish to protect. All data
-from protected assets is stored in the same region as the asset itself; the data does not leave the region or the cloud service provider network.
-
-- The management plane is a multi-tenant services that provides customers administrative access to configure protection of assets and
-recovery. The management plane stores configuration information provided by the customer and metadata about the assets that are
-discovered and protected.
-
-- The control plane orchestrates protection and recovery of assets, storing metadata and managing the backup data. Veritas deploys
-a separate control and data plane for each customer in each of their cloud service provider regions that they wish to protect. All data
-from protected assets is stored in the same region as the asset itself; the data does not leave the region or the cloud service provider network.
-
-![](./image1.png)
-
-The control plane, which is deployed in Azure or AWS depending on the assets to protect is strictly isolated using Azure and AWS network security mechanisms. 
-The control plane cannot be remotely accessed from the public internet; the only outgoing connections allowed are to the management plane and the customer’s environment. 
-An outbound-initiated connection to the management plane is used to report status and control asset protection. An outbound-initiated connection to a customer’s AWS or Azure account is used to protect assets; the control plane uses a private link service to ensure that data flows only over the AWS and Azure private network and not the internet.
-
