@@ -165,8 +165,29 @@ Là snapshot kết hợp giữa CoW và Split-Mirror Snapshots.
 
 ## Continuous Data Protection (CDP) 
 
-- Tạo snapshot thường xuyên của original data bởi policies (xác định tần suất và điều kiện để tạo snapshot). CDP lý tưởng nhất là được tạo ra theo thời gian thực. 
-- Mỗi khi có thay đổi được thực hiện trên dữ liệu gốc, CDP sẽ cập nhật snapshot của bản sao gốc để đảm bảo snapshot luôn phản ánh trạng thái dữ liệu mới nhất.
+Continuous Data Protection (CDP), also called continuous backup, is a system that backs up data on a computer system every time a change is made. CDP maintains a continuous journal of data changes and makes it possible to restore a system to any previous point in time.
+
+This solves the problem of the “backup window”, where organizations are at risk of losing data created between two scheduled backups. It also provides powerful protection against threats like malware and ransomware, as well as sabotage or accidental deletion of data.
+
+There are two types of CDP solutions:
+
+- True CDP—actually backs up data with every change. This allows an organization to achieve a Recovery Point Object (RPO) of zero.
+- Near CDP—a regular backup system, but one which runs scheduled backups very frequently, so it is close to achieving the effect of continuous data protection. RPO will be higher than zero, and equal to the interval between scheduled backups.
+
+# How Does Continuous Data Protection Work?
+
+Continuous data protection copies the “delta”, any changes to your data, from source to target. True continuous data protection systems record every write and store it in a changelog on the CDP system. CDP keeps all changes until the last write before failure, allowing you to restore to that point or any previous point before the data was corrupted or lost.
+
+Continuous data protection systems can record and back up changes to any type of data:
+
+- Files in your file system
+- Application data and files
+- Databases
+
+# CDP Topologies
+
+It is common for the target disk to be in the same network as the source, allowing users to perform quick recovery of data. Another topology is off-site replication, which provides better protection but also introduces higher latency.
+
 
 # Agent-based vs Agentless Backup
 
