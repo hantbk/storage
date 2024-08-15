@@ -76,10 +76,10 @@ Truy cập vào dashboard và đổi password:
 - Thay đổi luật trong iptables của các node bằng lệnh sau:
 ```
 # Đảm bảo các truy cập đầu vào của Ceph ports trên subnet
-iptables -A INPUT -s 192.168.1.0/24 -p tcp -m state --state NEW -m multiport --dports 3300,6789,6800:7300,9283,18080,9100,9222 -j ACCEPT
+iptables -A INPUT -s 192.168.1.0/24 -p tcp -m state --state NEW -m multiport --dports 3300,6789,6800:7300,9283,8888,8889,18080,9100,9222 -j ACCEPT
 
 # Đảm bảo các truy cập đầu ra của Ceph ports trên subnet
-iptables -A OUTPUT -d 192.168.1.0/24 -p tcp -m state --state NEW -m multiport --dports 3300,6789,6800:7300,9283,18080,9100,9222 -j ACCEPT
+iptables -A OUTPUT -d 192.168.1.0/24 -p tcp -m state --state NEW -m multiport --dports 3300,6789,6800:7300,9283,8888,8889,18080,9100,9222 -j ACCEPT
 
 # Cấp quyền kết nối SSH trên subnets
 iptables -A INPUT -s 192.168.1.0/24 -p tcp -m state --state NEW --dport 22 -j ACCEPT
@@ -208,6 +208,11 @@ ceph pg <PG_ID> query
 ceph pg repair <PG ID>
 ```
 
+### 4.5 Liệt kê các pool:
+- Sử dụng 
+```
+ceph osd lspools
+```
 ### 5 RADOS
 
 - Cách thêm object vào 1 pool thông qua rados:
