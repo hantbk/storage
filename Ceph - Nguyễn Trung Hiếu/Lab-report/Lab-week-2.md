@@ -39,6 +39,8 @@ root@trunghieu-vdt4 ~ [22]# ceph osd lspools
   - .rgw.buckets.non-ec #Chứa dữ liệu ec.
 - Tạo pool bằng lệnh sau:
 ```
+ceph osd pool create .rgw.root 32 32 rep_hdd_osd 3
+ceph osd pool application enable .rgw.root rgw
 ceph osd pool create default.rgw.log 32 32 rep_hdd_osd 3
 ceph osd pool application enable default.rgw.log rgw
 ceph osd pool create default.rgw.control 32 32 rep_hdd_osd 3
@@ -326,6 +328,142 @@ radosgw-admin zone create --rgw-zonegroup=zonegroup_1 \
                             --master --default \
                             --endpoints=S3_ENDPOINT
 ```
+<em>Lưu ý, Masterzone có thể tạo mà không cần thêm `--access-key` và `--secret-key` trong user, vì những zone này được quản lý bởi quản trị viên, không nên tương tác với zone này thông qua s3api để tăng tính bảo mật</em>
+- Kết quả sau khi tạo xong:
+```
+{
+    "id": "d6109c76-ff47-4fdf-b4fd-e9d1cfbb2d52",
+    "name": "master_zone",
+    "domain_root": "master_zone.rgw.meta:root",
+    "control_pool": "master_zone.rgw.control",
+    "gc_pool": "master_zone.rgw.log:gc",
+    "lc_pool": "master_zone.rgw.log:lc",
+    "log_pool": "master_zone.rgw.log",
+    "intent_log_pool": "master_zone.rgw.log:intent",
+    "usage_log_pool": "master_zone.rgw.log:usage",
+    "roles_pool": "master_zone.rgw.meta:roles",
+    "reshard_pool": "master_zone.rgw.log:reshard",
+    "user_keys_pool": "master_zone.rgw.meta:users.keys",
+    "user_email_pool": "master_zone.rgw.meta:users.email",
+    "user_swift_pool": "master_zone.rgw.meta:users.swift",
+    "user_uid_pool": "master_zone.rgw.meta:users.uid",
+    "otp_pool": "master_zone.rgw.otp",
+    "system_key": {
+        "access_key": "",
+        "secret_key": ""
+    },
+    "placement_pools": [
+        {
+            "key": "default-placement",
+            "val": {
+                "index_pool": "master_zone.rgw.buckets.index",
+                "storage_classes": {
+                    "STANDARD": {
+                        "data_pool": "master_zone.rgw.buckets.data"
+                    }
+                },
+                "data_extra_pool": "master_zone.rgw.buckets.non-ec",
+                "index_type": 0,
+                "inline_data": "true"
+            }
+        }
+    ],
+    "realm_id": "3d577d32-fccf-4951-b59b-22154f4dfddd",
+    "notif_pool": "master_zone.rgw.log:notif"
+}
+```
+
+## 10. Storage class:
+```
+radosgw-admin zonegroup placement add --rgw-zonegroup default --placement-id default-placement --storage-class SLIVER
+
+radosgw-admin zone placement add --rgw-zone=vdtzone --rgw-zonegroup=default\
+--placement-id=default-placement --storage-class=SLIVER \
+--data-pool=default.rgw.sliver.data
+
+radosgw-admin zone modify --rgw-realm=vdtcloud --rgw-zonegroup=default --rgw-zone=default --access-key=ZXH2R0LVXVS37RN
+SXSLC --secret-key uOEelPb0fANMkt0YWpaWCQd7zBCFOmz1t420pRQL --master --default
+
+[
+    {
+        "key": "default-placement",
+        "val": {
+            "name": "default-placement",
+            "tags": [],
+            "storage_classes": [
+                "SLIVER",
+                "STANDARD"
+            ]
+        }
+    }
+]
+
+
+{
+    "id": "49043ec9-0d2c-4054-bc08-e7be3dd94099",
+    "name": "default",
+    "domain_root": "default.rgw.meta:root",
+    "control_pool": "default.rgw.control",
+    "gc_pool": "default.rgw.log:gc",
+    "lc_pool": "default.rgw.log:lc",
+    "log_pool": "default.rgw.log",
+    "intent_log_pool": "default.rgw.log:intent",
+    "usage_log_pool": "default.rgw.log:usage",
+    "roles_pool": "default.rgw.meta:roles",
+    "reshard_pool": "default.rgw.log:reshard",
+    "user_keys_pool": "default.rgw.meta:users.keys",
+    "user_email_pool": "default.rgw.meta:users.email",
+    "user_swift_pool": "default.rgw.meta:users.swift",
+    "user_uid_pool": "default.rgw.meta:users.uid",
+    "otp_pool": "default.rgw.otp",
+    "system_key": {
+        "access_key": "",
+        "secret_key": ""
+    },
+    "placement_pools": [
+        {
+            "key": "default-placement",
+            "val": {
+                "index_pool": "default.rgw.buckets.index",
+                "storage_classes": {
+                    "SLIVER": {
+                        "data_pool": "default.rgw.sliver.data"
+                    },
+                    "STANDARD": {
+                        "data_pool": "default.rgw.buckets.data"
+                    }
+                },
+                "data_extra_pool": "default.rgw.buckets.non-ec",
+                "index_type": 0,
+                "inline_data": "true"
+            }
+        }
+    ],
+    "realm_id": "",
+    "notif_pool": "default.rgw.log:notif"
+}
+```
+- Kiểm tra service storage class thông qua ceph df:
+```
+
+ceph df
+
+```
+## 11. Encryption
+
+- Ceph Object Gateway hỗ trợ mã hóa phía server thông qua 3 lựa chọn. Các object khi được gửi qua HTTP dưới dạng raw, sẽ được lưu trữ trong Bucket dưới dạng mã hóa.
+
+- Ceph sử dụng [Hashicorp Vault](https://developer.hashicorp.com/vault/docs) làm dịch vụ quản lý key, tạo và mã hóa data theo trình tự như sau:
+![alt text](../Picture/hashicorp-vault.png)
+
+
+## 12. Shadow object:
+- _shadow trên các đối tượng trong bể chứa SLIVER cho biết đây là các shadow object.
+Các shadow object được tạo trong các lớp lưu trữ không phải mặc định và đóng vai trò là các mục nhập tham chiếu đến các đối tượng thực sự được lưu trữ trong bể chứa mặc định. 
+
+Khi lưu trữ một object với một storage class trữ tùy chỉnh như SLIVER, RGW sẽ tạo ra object chính trong bể chứa mặc định và một shadow object trong bể chứa SLIVER. Điều này cho phép RGW quản lý đối tượng trên các lớp lưu trữ khác nhau và đảm bảo tính nhất quán của dữ liệu.
+
+Khi xóa một object, RGW thường xóa đối tượng chính khỏi bể chứa mặc định và shadow object tương ứng khỏi bể chứa lớp lưu trữ tùy chỉnh. 
 
 # B. RDB:
 
