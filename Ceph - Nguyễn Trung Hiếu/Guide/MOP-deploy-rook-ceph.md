@@ -61,6 +61,6 @@ sudo firewall-cmd --reload
 ```
 kubeadm init --v=5
 ```
-
-- Lỗi đang gặp phải:
+  
+- Lỗi đang gặp phải:   
 ![alt text](../Picture/k8s-error-systemd.png)
