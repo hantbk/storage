@@ -20,14 +20,47 @@ sudo swapoff -a
 ```
  kubeadm init --pod-network-cidr=171.254.94.63/24
 ```
-- Cấu hình kubeadm:
+- Cấu hình containerd trong /etc/containerd/config.toml
+```
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    ...
+    SystemdCgroup = true
+    ...
+
+    [plugins."io.containerd.grpc.v1.cri"]
+    ...
+    systemd_cgroup = true
+    ...
+```
+- Cấu hình file docker daemon.json:
+```
+{
+    "bridge": "none",
+    "ip-forward": false,
+    "iptables": false,
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-opts": {
+        "max-file": "5",
+        "max-size": "50m"
+    }
+}
+```
+- Cấu hình kubelet trong file kubelet/config.yaml
+```
+...
+cgroupDriver: systemd
+...
+```
+- Cho phép các port 6443 và 10250 thông qua firewall
+```
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --reload
+```
+- Xây thử 1 cụm k8s thông qua kubeadm:
+```
+kubeadm init --v=5
 ```
 
-```
-- Cấu hình kube thông qua kubectl:
-```
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-```
-
+- Lỗi đang gặp phải:
+![alt text](../Picture/k8s-error-systemd.png)
