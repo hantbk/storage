@@ -1,3 +1,54 @@
+# Disk Image
+
+A disk image is a snapshot of a storage device's structure and data typically stored in one or more computer files on another storage device
+
+Traditionally, disk images were bit-by-bit copies of every sector on a hard disk often created for digital forensic purposes, but it is now common to only copy allocated data to reduce storage space. Compression and deduplication are commonly used to reduce the size of the image file set
+
+Disk imaging is done for a variety of purposes including digital forensics, cloud computing, system administration, as part of a backup strategy, and legacy emulation as part of a digital preservation strategy. Disk images can be made in a variety of formats depending on the purpose. Virtual disk images (such as VHD and VMDK) are intended to be used for cloud computing, ISO images are intended to emulate optical media and raw disk images are used for forensic purposes. 
+
+## Raw Image
+
+Raw image format represents a plain, unstructured disk image with no compression or optimization applied. It provides direct access to the underlying storage device, resulting in optimal performance. Raw images are ideal for scenarios where performance is paramount, such as high-performance computing (HPC) clusters or database servers. However, raw images tend to occupy more disk space compared to qcow2 due to the absence of compression.
+
+Raw images are essentially unformatted disk files, mirroring the physical structure of a hard disk drive. They offer:
+
+- Performance: Raw images boast the highest potential performance due to the absence of overhead associated with additional formatting.
+- Simplicity: Their straightforward structure simplifies data recovery in case of VM corruption.
+
+However, raw images come with drawbacks:
+
+- Storage Inefficiency: They occupy the entire allocated storage space, even for unused portions, leading to wasted storage capacity.
+- Limited Snapshot Functionality: KVM and OpenStack primarily rely on snapshots for VM backups and rollbacks. Raw images themselves don’t natively support snapshots within the format, need to use external version control tools or convert the raw image to QCOW2 before taking snapshots.
+
+## QCOW2 Image
+Qcow2 (QEMU Copy-On-Write version 2) is a versatile disk image format that supports features like compression, snapshots, and thin provisioning. Qcow2 images offer better storage efficiency by utilizing compression techniques, resulting in smaller file sizes compared to raw images. The Copy-On-Write mechanism allows for efficient storage utilization by only writing changes to disk, making qcow2 suitable for scenarios requiring frequent snapshots or backups. However, the additional processing overhead associated with compression and Copy-On-Write may slightly impact performance compared to raw images.
+
+### Advantages of Qcow2 Image Format
+
+The qcow2 format is a popular choice for KVM/OpenStack environments, offering:
+
+- Storage efficiency – qcow2 images store only the used data blocks, significantly reducing storage consumption compared to raw images.
+- Qcow2 supports features like snapshots, live migration, and online resize, essential for VM management in KVM/OpenStack.
+- Seamless Backup – qcow2 images seamlessly integrate with KVM and OpenStack backup solutions, simplifying data protection and recovery.
+While qcow2 offers significant advantages, it comes with a slight performance overhead compared to raw images due to the additional layer of formatting.
+
+### Disadvantages of qcow2 Images
+
+- Complexity – qcow2 has advanced features. Hence, it is more complex to work with, and may require more expertise.
+- Performance Overhead – the extra features in qcow2 and the COW mechanism can cause performance overhead.
+- Fragmentation – images can become fragmented over time, especially when using snapshots and frequent disk writes. This fragmentation may cause slower read and write, increasing processing time.
+
+## Key Differences Between Raw and Qcow2 Images
+
+Choose Raw if:
+- Absolute performance is the top priority.
+- Data recovery is a major concern, and simplicity is preferred.
+
+Choose Qcow2 if:
+- Storage efficiency is critical.
+- You require advanced VM management features like snapshots and live migration.
+- Seamless integration with KVM/OpenStack backup solutions is essential.
+
 # VDI vs VHD vs VMDK
 
 ## Virtual Hard Disk (VHD)
