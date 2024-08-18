@@ -194,3 +194,20 @@ The blocks may be blocked for physical I/O operations. Each record of n blocks (
 gzip is based on the DEFLATE algorithm, which is a combination of LZ77 and Huffman coding. DEFLATE was intended as a replacement for LZW and other patent-encumbered data compression algorithms which, at the time, limited the usability of the compress utility and other popular archivers.
 
 Although its file format also allows for multiple such streams to be concatenated (gzipped files are simply decompressed concatenated as if they were originally one file), gzip is normally used to compress just single files. Compressed archives are typically created by assembling collections of files into a single tar archive (also called tarball), and then compressing that archive with gzip. The final compressed file usually has the extension .tar.gz or .tgz.
+
+### 5. ZIP
+ZIP is an archive file format that supports lossless data compression. A ZIP file may contain one or more files or directories that may have been compressed. The ZIP file format permits a number of compression algorithms, though DEFLATE is the most common.
+
+Supported Compression Methods in ZIP
+- Deflate - Standard LZ77-based algorithm
+- BZIP2 - Standard BWT algorithm
+- LZMA - Improved and optimized version of the LZ77 algorithm
+- PPMD - Dmitry Shkarin’s PPMdH with small changes
+- WavPack - Hybrid lossless audio compression
+- Store - No compression
+- Shrink - Lempel-Ziv-Welch (LZW) algorithm
+- Reduce - Run Length Encoding (RLE) algorithm
+- Deflate64 - Enhanced version of the Deflate algorithm
+- Implode - Shannon-Fano coding algorithm
+
+
