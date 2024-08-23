@@ -39,6 +39,11 @@ nano /etc/hosts
 192.168.100.12 ceph-rook-2
 192.168.100.12 ceph-rook-3
 ```
+```
+192.168.100.21 rook-node-1
+192.168.100.22 rook-node-2
+192.168.100.32 rook-node-3
+```
 ### 4. Cấu hình proxy (Đối với các máy kết nối ra ngoài thông qua proxy):
 
 ```
@@ -52,6 +57,11 @@ export NO_PROXY=localhost,127.0.0.1,::1,10.0.2.15,10.96.0.0/12,10.244.0.0/16,192
 
 source ~/.bashrc
 ```
+```
+export http_proxy="http://10.61.11.42:3128"
+export https_proxy="http://10.61.11.42:3128"
+export NO_PROXY=localhost,127.0.0.1,::1,10.0.2.15,10.96.0.0/12,10.244.0.0/16,192.168.100.21,192.168.100.22,192.168.100.23,192.168.0.0/16
+```
 
 ## B. Cài đặt K8S cluster:
 
@@ -59,6 +69,9 @@ source ~/.bashrc
 ```
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+# Hoặc để tắt vĩnh viễn:
+nano /etc/fstab:
+#/swap.img      none    swap    sw      0       0
 ```
 ### 2. Bật IPv4 Forward:
 ```
@@ -116,6 +129,16 @@ sudo sysctl --system
 sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
 modprobe br_netfilter
 sysctl -p /etc/sysctl.conf
+```
+
+- Bật overlay và br_netfilter 
+```
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+sudo modprobe overlay
+sudo modprobe br_netfilter
 ```
 ### 7. Chỉnh sửa file config Containerd để hỗ trợ systemd:
 ```
@@ -351,6 +374,7 @@ apt-get update
 mkdir -p -m 755 /etc/apt/keyrings
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key 
 (--proxy http://10.61.11.42:3128)
+
 sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
@@ -425,11 +449,56 @@ ceph-rook-1   NotReady   control-plane   48m   v1.30.4
 ceph-rook-2   Ready      <none>          46m   v1.30.4
 ceph-rook-3   Ready      <none>          46m   v1.30.4
 ```
+- Ta cũng có thể đặt label cho các node thông qua lệnh:
+```
+kubectl label node ceph-rook-3 node-role.kubernetes.io/worker
+=worker
+```
 
 ### 10. Cài đặt CNI sử dụng flannel:
 ```
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
+<em>**Luư ý, cài đặt CNI cho cụm cluster trước khi add thêm worker vào node!** Nếu không, dễ có trường hợp CNI sẽ gán cho các worker cùng 1 ip tại network adapter, gây ra conflict khi cố gắng cài đặt những services yêu cầu cụm cluster phải có nhiều node như rook-ceph.
+</em>
+
+<em>
+Ví dụ khi không cài đặt đúng cluster, kiểm tra trên node 2 và node 3, ở adapter cni0 sẽ được gán cùng 1 địa chỉ ip:
+</em>
+
+```
+#Ở trên node 2:
+root@ceph-rook-2:~# ip addr show cni0
+38: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 3e:db:f3:98:95:16 brd ff:ff:ff:ff:ff:ff
+    inet 10.244.1.1/24 brd 10.244.1.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::3cdb:f3ff:fe98:9516/64 scope link
+       valid_lft forever preferred_lft forever
+# Ở trên node 3:
+root@ceph-rook-3:~# ip addr show cni0
+38: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 3e:db:f3:98:95:16 brd ff:ff:ff:ff:ff:ff
+    inet 10.244.1.1/24 brd 10.244.1.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::3cdb:f3ff:fe98:9516/64 scope link
+       valid_lft forever preferred_lft forever
+```
+
+
+- Trên các worker node, chạy lệnh sau để thêm vào cluster:
+```
+kubeadm join 192.168.100.11:6443 --token 03oevc.04y6ru2b2yba8xtu \
+        --discovery-token-ca-cert-hash sha256:072d865c*****
+```
+- Kiểm tra thông qua lệnh `kubectl get nodes`:
+```
+NAME          STATUS     ROLES           AGE   VERSION
+ceph-rook-1   Ready   control-plane   48m   v1.30.4
+ceph-rook-2   Ready      <none>          46m   v1.30.4
+ceph-rook-3   Ready      <none>          46m   v1.30.4
+```
+- Ta có thể thêm 
 ### 11. Lỗi đang gặp phải:
 - Trên node ceph-rook-1, gặp phải lỗi `Network plugin returns error: cni plugin not initialized`
 ```
@@ -457,7 +526,19 @@ systemctl stop apparmor
 systemctl disable apparmor
 systemctl restart containerd.service
 ```
-<em>Lưu ý, AppArmor là một mô-đun bảo mật của kernel Linux cho phép quản trị viên hệ thống hạn chế khả năng của các chương trình thông qua các hồ sơ riêng cho từng chương trình. Các hồ sơ này có thể cho phép các quyền như truy cập mạng, truy cập socket thô, và quyền đọc, ghi hoặc thực thi các tệp ở các đường dẫn phù hợp. Cần cấu hình AppArmor nếu  muốn cho phép các dịch vụ k8s hoạt động một cách an toàn.</em>
+<em>Lưu ý, AppArmor là một mô-đun bảo mật của kernel Linux cho phép quản trị viên hệ thống hạn chế khả năng của các chương trình thông qua các hồ sơ riêng cho từng chương trình. Các hồ sơ này có thể cho phép các quyền như truy cập mạng, truy cập socket thô, và quyền đọc, ghi hoặc thực thi các tệp ở các đường dẫn phù hợp. Cần cấu hình AppArmor nếu  muốn cho phép các dịch vụ k8s hoạt động một cách an toàn, không nên disable như trong cụm lab này.</em>
+
+### 12.Reset cụm k8s trong trường hợp cấp thiết:
+- Chạy các lênh sau để reset toàn bộ cụm lệnh k8s:
+```
+kubeadm reset
+rm -f $HOME/.kube/config
+rm -rf /etc/cni/net.d
+#Nếu có các config riêng trong iptables thì hãy bỏ qua 3 lệnh dưới đây.
+sudo iptables -F       
+sudo iptables -t nat -F 
+sudo iptables -X       
+```
 
 ## C. Cài đặt rook-ceph:
 - Tải các file manifest cần thiết:
@@ -500,12 +581,4 @@ rook-ceph-operator-7d5565fbc7-25m4x             0/1     Completed   0           
 rook-ceph-operator-7d5565fbc7-ncw47             0/1     Completed   0             31m
 rook-ceph-operator-7d5565fbc7-s9gst             0/1     Pending     0             24m
 ```
-- Conainter `rook-ceph-detect-version-m7h6m` gặp phải lỗi:
-```
-kubectl -n rook-ceph logs rook-ceph-detect-version-m7h6m
-Defaulted container "cmd-reporter" out of: cmd-reporter, init-copy-binaries (init)
-unable to retrieve container logs for containerd://9923a9437f8dd1acad0b3f8328e07252c8cd3668b8b8bf2e6ef9dcc6be205957⏎
-```
-Cho dù container 9923a9437f8dd1acad0b3f8328e07252c8cd3668b8b8bf2e6ef9dcc6be205957⏎không hề tồn tại?
-- Tương tự với `rook-ceph-detect-version-r48tp4`, Container `cmd-reporter` chưa được tạo.
 

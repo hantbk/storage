@@ -11,6 +11,8 @@ echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.
 apt update
 
 ```
+
+
 ### 2. Cấu hình cho k8s sử dụng systemd thay cho cgroup
 - Tắt swap space:
 ```
@@ -70,7 +72,13 @@ systemctl restart kubelet
 ```
 kubeadm init --v=5
 ```
+- Cài đặt cni packet:
+```
+curl -L -o cni-plugins-linux-amd64-v1.4.0.tgz https://github.com/containernetworking/plugins/releases/download/v1.4.0/cni-plugins-linux-amd64-v1.4.0.tgz
+mkdir -p /opt/cni/bin
+tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.4.0.tgz
 
+```
 - Lỗi đang gặp phải:   
 ![alt text](../Picture/k8s-error-systemd.png)
 ```
