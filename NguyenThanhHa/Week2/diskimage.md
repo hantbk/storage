@@ -49,6 +49,16 @@ Choose Qcow2 if:
 - You require advanced VM management features like snapshots and live migration.
 - Seamless integration with KVM/OpenStack backup solutions is essential.
 
+# ISO File
+
+An ISO file is an exact copy of an entire optical disk such as a CD, DVD, or Blu-ray archived into a single file. This file, which is also sometimes referred to as an ISO image, is a smaller sized duplicate of large sets of data.
+
+In order to perform its function, the ISO file needs to be opened and assembled so the data can be viewed. Its actual function is to replicate an original optical disk and store it until it is needed to burn a new disk having the same data within it. 
+
+However, ISO files are used for much greater purposes when it comes to operating systems. They can be excellent vessels for large programs or operating systems themselves, since they are a single file that contains huge amounts of data.
+
+By uploading them on a ISO file, these operating systems can be downloaded, mounted, or burned on an optical disk easily.
+
 # VDI vs VHD vs VMDK
 
 ## Virtual Hard Disk (VHD)

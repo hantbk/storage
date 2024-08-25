@@ -1,0 +1,7 @@
+# Hot Backup vs. Cold Backup and Warm Backup
+
+A hot backup is performed whilst users are still logged into a system, whereas a cold backup is done with all users offline. The reason for performing hot backups is that it minimises downtime on a day-to-day basis, which is especially useful for systems that require 24/7 operation. The issue with hot backups is that if data is changed whilst the backup is being performed there may be some inconsistencies, such as the previous state of the file being included in the backup rather than the latest one. Hot backups also take up computer resources, so machine and server performance can be affected during backups.
+
+Cold backups, sometimes known as offline backups, are the safest way to backup data as no files can be changed during the backup. Cold backups can be performed on a copy of data too, such as that stored in an offsite repository. The benefit of cold backups is that the backup can’t be affected by live viruses or hacking attempts. They also won’t be affected by power surges, making them the most reliable way to backup your data. Obviously the downside is that during this time no users can access the system. It can also take longer to recover from a disaster with cold backups as moving the data from the cold backup site to being fully operational can cause delays.
+
+# Find out later -> solution for hot backup 
