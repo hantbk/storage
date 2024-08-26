@@ -39,8 +39,8 @@ root@trunghieu-vdt4 ~ [22]# ceph osd lspools
   - .rgw.buckets.non-ec #Chứa dữ liệu ec.
 - Tạo pool bằng lệnh sau:
 ```
-ceph osd pool create .rgw.root 32 32 rep_hdd_osd 3
-ceph osd pool application enable .rgw.root rgw
+ceph osd pool create default.rgw.root 32 32 rep_hdd_osd 3
+ceph osd pool application enable default.rgw.root rgw
 ceph osd pool create default.rgw.log 32 32 rep_hdd_osd 3
 ceph osd pool application enable default.rgw.log rgw
 ceph osd pool create default.rgw.control 32 32 rep_hdd_osd 3
