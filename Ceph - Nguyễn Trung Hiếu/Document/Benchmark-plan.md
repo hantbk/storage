@@ -57,3 +57,6 @@ ceph osd pool create testbench 100 100
     - Tên bucket đẩy file lên.
 - Output:
     - Thời gian hoàn thành hoạt động.
+
+#### 3. Tài liệu tham khảo:
+- https://docs.redhat.com/en/documentation/red_hat_ceph_storage/5/html/administration_guide/ceph-performance-benchmarking#ceph-performance-benchmarking
