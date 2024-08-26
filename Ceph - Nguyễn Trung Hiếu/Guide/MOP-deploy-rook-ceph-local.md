@@ -441,6 +441,10 @@ users:
 ```
 kubeadm join 192.168.100.11:6443 --token 03oevc.04y6ru2b2yba8xtu \
         --discovery-token-ca-cert-hash sha256:072d865c*****
+
+#Chạy lệnh sau trong trường hợp không lưu lại token và cert:
+
+kubeadm token create --print-join-command
 ```
 - Kiểm tra thông qua lệnh `kubectl get nodes`:
 ```
@@ -540,6 +544,7 @@ sudo iptables -t nat -F
 sudo iptables -X       
 ```
 
+
 ## C. Cài đặt rook-ceph:
 - Tải các file manifest cần thiết:
 ```
@@ -558,27 +563,5 @@ rook-ceph-operator-7d5565fbc7-25m4x             1/1     Running     0           
 ```
 - Tạo 1 cluster thông qua:
 ```
-kubectl create -f cluster-on-pvc.yaml
+kubectl create -f <cluster-file>.yaml
 ```
-- Lỗi đang gặp phải
-```
-kubectl -n rook-ceph get pods
-NAME                                            READY   STATUS      RESTARTS      AGE
-csi-cephfsplugin-l4hxz                          2/2     Running     0             27m
-csi-cephfsplugin-nprb9                          2/2     Running     1 (26m ago)   27m
-csi-cephfsplugin-provisioner-868bf46b56-24rbn   5/5     Running     1 (25m ago)   27m
-csi-cephfsplugin-provisioner-868bf46b56-b5zh5   5/5     Running     0             27m
-csi-rbdplugin-6r2rt                             2/2     Running     1 (26m ago)   27m
-csi-rbdplugin-provisioner-d9b9d694c-8p6s5       5/5     Running     0             27m
-csi-rbdplugin-provisioner-d9b9d694c-9c2hb       5/5     Running     1 (25m ago)   27m
-csi-rbdplugin-s7qkk                             2/2     Running     0             27m
-rook-ceph-detect-version-48tp4                  0/1     Pending     0             24m
-rook-ceph-detect-version-m7h6m                  0/1     Error       0             26m
-rook-ceph-mon-a-canary-674b79dc48-x56sz         2/2     Running     0             28m
-rook-ceph-mon-b-canary-ddd984f7f-vv8dk          2/2     Running     0             28m
-rook-ceph-mon-c-canary-796c7f449d-nfq7b         0/2     Pending     0             28m
-rook-ceph-operator-7d5565fbc7-25m4x             0/1     Completed   0             26m
-rook-ceph-operator-7d5565fbc7-ncw47             0/1     Completed   0             31m
-rook-ceph-operator-7d5565fbc7-s9gst             0/1     Pending     0             24m
-```
-

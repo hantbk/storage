@@ -85,6 +85,16 @@ kubectl -n rook-ceph exec -it rook-ceph-tools-<pod-id> -- /bin/bash
 ```
 - Ở trong pods này, ta có thể chạy các lệnh như `ceph -s`, `ceph orch ls`.... như 1 cụm ceph thông thường.
 
+## Các pod có trong 1 cụm rook-ceph:
+- csi-cephfsplugin-provisione: là một phần của driver Ceph CSI (Container Storage Interface) dành cho CephFS, quản lý việc tạo và xóa các volume CephFS theo yêu cầu của Kubernetes, các bản snapshot của các volume,....
+- csi-cephfsplugin: daemon plugin CephFS, kết nối volume CephFS với các ứng dụng đang chạy, tháo gỡ volume khi không cần thiết,...
+- rook-ceph-operator: chạy operator của Rook, quản lý việc triển khai và quản lý liên tục cụm Ceph trong Kubernetes, bắt buộc là pod đầu tiên được dựng lên. Xử lý các tác vụ như mở rộng cụm, nâng cấp phiên bản Ceph, và quản lý các CRD (Custom Resource Definitions) đại diện cho tài nguyên Ceph
+- rook-ceph-osd: chứa daemons osd
+- rook-ceph-mgr: chứa daemons mgr
+- rook-ceph-mon: chứa daemons monitor
+- rook-ceph-osd-prepare: chịu trách nhiệm chuẩn bị các đĩa để sử dụng bởi các osd, chuẩn bị các đĩa (ví dụ: định dạng, phân vùng) để chúng có thể được sử dụng bởi các OSD, hoàn thành công việc với trạng thái completed thay vì running.
+- rook-ceph-tools: cung cấp công cụ để tương tác với cụm Ceph, người sử dụng cần thông qua container này mới có thể quản lý, kiểm tra cụm ceph bằng các câu lệnh thông thường như `ceph -s`, `ceph orch`,....
+
 ## Áp dụng các dịch vụ như storage-class.
 - Để tạo 1 storage class mới, ta cần sử dụng 
 
