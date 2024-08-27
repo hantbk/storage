@@ -165,7 +165,7 @@ kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph osd crush rule crea
 ```
 - Rồi sau đó tạo pool 
 ```
-ceph osd pool create ec_pool_1 8 8 erasure ec_hdd_osd
+ceph osd pool create rep3_pool_1 8 8 erasure rep_hdd_osd 3
 
 ```
 - Tương tự với xóa pool, sửa pool, thêm object vào pool thông qua rados....
