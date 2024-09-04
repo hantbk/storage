@@ -9,9 +9,9 @@
   - 3 Osd, nằm trong cùng 1 virtual disk với bộ nhớ 120GB ( Mỗi osd chứa 40 GB)
 
 - Cấu hình của VM chạy thử nghiệm:
-  - CPU:
-  - RAM:
-  - Network adapter:
+  - CPU: 24 thread CPU
+  - RAM: 32GiB
+  - Disk: HDD 500GB
 
 ## B. Kế hoạch benchmark:
 
