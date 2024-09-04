@@ -187,4 +187,41 @@ rados bench -p testbench 20 read --no-cleanup
 ```
 rados -p testbench cleanup
 ```
-# C. Kết quả:
+# C. Kết quả chạy:
+
+- Kết quả chạy và lệnh chạy sẽ có trong file excel sau [đây](../Lab-report/Benchmark%20CEPHROOK%20vs%20CEPHADM.xlsx)
+- Tổng kết:
+### 1. Kết quả khi test tốc độ IOPS của 1 pool thông qua fio:
+-  Tốc độ đọc và ghi của cụm rookceph đều chậm hơn cụm cephadm từ 3-4%, điều này còn tệ hơn đối với tốc độ đọc ghi hỗn hợp, khi mà có thể chênh lệnh lên tới 5.8%
+-  Tương tự với băng thông và độ trễ, đều là chênh lệch trong khoảng 3-5%
+### 2. Kết quả khi test performance của cluster thông qua rados bench:
+- Tốc độ ghi của rook-ceph chậm hơn cephadm từ 2.4% đến 2.5%, tuy nhiên, tốc độ đọc của rook-ceph lại nhanh hơn từ 12%-29%.
+- Tương tự với băng thông và độ trễ, đều có chênh lệch lớn giữa kết quả của đọc so với kết quả của ghi, cho thấy rằng rook-ceph có lợi thế lớn hơn khi đọc dữ liệu.
+
+###  3. Kết quả khi test hiệu xuất của api s3 thông qua hsbench:
+- Tương tự, tốc độ ghi (PUT) và xóa (DELETE) của rook-ceph chậm hơn cephadm, nhưng tốc độ đọc của rook-ceph lại lớn hơn trông thấy so với tốc độ đọc của cephadm.
+
+### 4. Giả định nguyên nhân:
+#### Về fio:
+- Rook-Ceph tích hợp chặt chẽ với Kubernetes, sử dụng cơ sở hạ tầng của k8s để triển khai và quản lý các dịch vụ Ceph. Điều này có thể dẫn đến một số overhead nhất định, đặc biệt là khi sử dụng fio để kiểm tra hiệu năng truy cập file hệ thống, do k8s cần quản lý các pod và dịch vụ.
+- Do fio đo lường hiệu năng truy cập I/O ngẫu nhiên, phải thông qua 1 lớp ảo hóa nên nó có thể bị ảnh hưởng bởi cách mà các khối lưu trữ được quản lý bởi Kubernetes và cơ sở hạ tầng của Rook.
+- Cephadm, ngược lại, quản lý các daemon của Ceph trực tiếp trên hệ thống mà không cần thông qua k8s, điều này có thể giúp tăng hiệu suất trong các tác vụ đòi hỏi nhiều tài nguyên như fio
+#### Về hsbench và gosbench:
+- Rook sử dụng k8s để quản lý các dịch vụ Ceph, điều này có thể làm tăng overhead trong một số tác vụ, nhưng lại mang lại lợi ích trong việc cân bằng tải và khả năng tự phục hồi khi gặp lỗi. Điều này có thể giải thích tại sao Rook lại cho kết quả tốt hơn trong các bài test như hsbench và rados bench cho các tác vụ liên quan đến đọc ngẫu nhiên và tuần tự.
+
+### 5. Kết luận:
+- Ta nên chọn Cephadm nếu:
+  - Ta muốn một hệ thống Ceph không phụ thuộc vào k8s mà chạy bare metal (Sử dụng cho một khách hàng duy nhất).
+  - Ta muốn tập trung vào các tác vụ I/O ngẫu nhiên hoặc truy cập file hệ thống (fio).
+  - Ta cần một hệ thống đơn giản với hiệu năng ổn định mà không cần nhiều tích hợp với k8s.
+
+- Ta nên chọn Rook-Ceph nếu:
+  - Ta có dự định triển khai K8s và muốn tích hợp chặt chẽ với hệ sinh thái này.
+  - Ta ưu tiên hiệu năng tốt hơn trong các tác vụ S3 hoặc các thao tác đọc/GET so với các thao tác ghi/PUT và xóa/DELETE trên Ceph.
+  - Ta cần một giải pháp dễ dàng mở rộng và quản lý trong môi trường nhiều container.
+  - Ta muốn triển khai 1 cụm ceph nhanh chóng với đầy đủ chức năng từ RESTapi đến telementry,....
+
+### 6. Lưu ý:
+- Các bài test trên đều được thử nghiệm trong 1 môi trường lab nhỏ, với các cụm ceph chỉ có 1 host duy nhất. Các kết quả này sẽ có thể khác với các cụm ceph to hơn, do ceph hoạt động hiệu quả hơn với các cụm lớn, có dung lượng tính từ TiB trở lên.
+- Các con máy ảo trong lab này đều chưa được tuning, nên điều này có thể dẫn đến thay đổi kết quả.
+- Cần thử nghiệm nhiều hơn ở các cụm ceph lab to hơn để rõ kết quả hơn. 
