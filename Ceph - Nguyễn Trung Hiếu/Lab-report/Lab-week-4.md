@@ -217,7 +217,7 @@ rados -p testbench cleanup
 
 - Ta nên chọn Rook-Ceph nếu:
   - Ta có dự định triển khai K8s và muốn tích hợp chặt chẽ với hệ sinh thái này.
-  - Ta ưu tiên hiệu năng tốt hơn trong các tác vụ S3 hoặc các thao tác đọc/GET so với các thao tác ghi/PUT và sửatrên Ceph.
+  - Ta ưu tiên hiệu năng tốt hơn trong các tác vụ S3 hoặc các thao tác đọc/GET so với các thao tác ghi/PUT và xóa/DELETE trên Ceph.
   - Ta cần một giải pháp dễ dàng mở rộng và quản lý trong môi trường nhiều container.
   - Ta muốn triển khai 1 cụm ceph nhanh chóng với đầy đủ chức năng từ RESTapi đến telementry,....
 
