@@ -41,6 +41,7 @@
   - Ít Placement Group: Hồi phục lâu hơn, nhưng sẽ tránh phần lớn các trường hợp bị mất data do >3-failure. 
   ![alt text](../Picture/image-10.png)
   => Cần tách data ra khắp các failure-domain cao như (rack, row, data center) để tránh sập mà làm mất data.
+  
   ![alt text](../Picture/image-11.png)
   - Số Placement group hợp lý thường được tính bằng:
   ```
